@@ -56,6 +56,12 @@ so a connector can be written and tested against them. Each is marked
   path watches the browser page URL instead. Both directories are written so
   the same assertions hold either way: a session page means approved, a
   `message.html` page means not approved.
+- **The refusal parameter itself is invented.** `refused/06-poll-refused.json`
+  redirects to `message.html?param=AuthentAppRejected`; no decline parameter
+  was ever observed (§4 states that the bank gives no explicit decline
+  signal). The connector must therefore key on "a `message.html` page during
+  the approval wait means not-approved", never on this particular value —
+  which is also why the fixture is only useful for that generic rule.
 - `data-status="pending"` (`pending-day1/`): no pending/booked distinction was
   observed on the statement pages. If the bank never marks pending rows, the
   connector treats every row as booked and this overlay is unused.
