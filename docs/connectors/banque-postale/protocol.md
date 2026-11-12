@@ -278,10 +278,11 @@ All `GET` on the bank origin, plain HTTP with the session cookies:
   default to EUR.
 - **Identity:** rows carry no bank id. Leave `remote_id` as `None` and let
   the SDK synthesize ids (`synthesize_remote_ids`): it keys twins with an
-  occurrence index over **complete booking days**, independently of page
-  order, so a newly arrived identical row cannot shift the ids of older
-  twins. Legitimate twins (two identical operations the same day) keep
-  distinct ids and must both be preserved.
+  occurrence index over **complete booking days**, numbered in the order the
+  bank returned them. Keep that order stable: a newly arrived identical row
+  returned before older twins shifts their indices. Legitimate twins (two
+  identical operations the same day) keep distinct ids and must both be
+  preserved.
 - **No pending/booked distinction** was observed on the statement pages: every
   listed row is treated as booked. If the bank ever introduces a pending
   marker, it must be mapped to the SDK `Pending`/`Booked` status then — not
