@@ -24,7 +24,7 @@ cargo run -p em-server    # serves on http://localhost:8080, try /healthz
 pnpm web:dev              # web UI dev server
 ```
 
-The Rust version is pinned in `rust-toolchain.toml`, and pnpm in `package.json`. Docker setup will come once the server is usable.
+The Rust version is pinned in `rust-toolchain.toml`, and pnpm in `package.json`. Prefer containers? `docker compose up` runs the server with PostgreSQL (`docker compose -f compose.sqlite.yaml up` for SQLite).
 
 ## Sending a change
 

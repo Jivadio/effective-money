@@ -65,13 +65,18 @@ fn repository() -> anyhow::Result<String> {
 
 /// Returns the id of the live ruleset named `name`, if any.
 fn find_live_id(repo: &str, name: &str) -> anyhow::Result<Option<u64>> {
-    let list = gh(&[
+    // `--paginate --slurp` returns every page, as an array of page arrays.
+    let pages = gh(&[
         "api",
-        &format!("repos/{repo}/rulesets?includes_parents=false"),
+        "--paginate",
+        "--slurp",
+        &format!("repos/{repo}/rulesets?includes_parents=false&per_page=100"),
     ])?;
-    Ok(list
+    Ok(pages
         .as_array()
         .into_iter()
+        .flatten()
+        .filter_map(Value::as_array)
         .flatten()
         .find(|r| r["name"] == name)
         .and_then(|r| r["id"].as_u64()))
@@ -119,6 +124,22 @@ fn subset(value: &Value) -> Value {
     Value::Object(out)
 }
 
+/// GitHub only returns `bypass_actors` to callers with write access to the
+/// ruleset. With a read-only token the field is missing from `live`: skip it
+/// (with a warning) instead of reporting drift that may not exist.
+fn without_unreadable_fields(mut expected: Value, live: &Value) -> Value {
+    if live.get("bypass_actors").is_none()
+        && let Some(map) = expected.as_object_mut()
+        && map.remove("bypass_actors").is_some()
+    {
+        eprintln!(
+            "rulesets check: warning: `bypass_actors` is not visible with this token \
+             (needs write access to the ruleset); not verified"
+        );
+    }
+    expected
+}
+
 pub fn check() -> anyhow::Result<()> {
     let expected = subset(&load_expected()?);
     let name = expected["name"]
@@ -129,6 +150,7 @@ pub fn check() -> anyhow::Result<()> {
     let id = find_live_id(&repo, &name)?
         .with_context(|| format!("no live ruleset named `{name}` on {repo}"))?;
     let live = subset(&gh(&["api", &format!("repos/{repo}/rulesets/{id}")])?);
+    let expected = without_unreadable_fields(expected, &live);
     if matches(&expected, &live) {
         println!("rulesets check: `{name}` on {repo} matches .github/rulesets/main.json");
         return Ok(());
@@ -207,5 +229,25 @@ mod tests {
         assert!(!matches(&expected, &changed));
         assert!(!matches(&expected, &extra_rule));
         assert!(!matches(&expected, &json!({})));
+    }
+
+    #[test]
+    fn hidden_bypass_actors_are_not_reported_as_drift() {
+        let expected = json!({
+            "name": "main",
+            "bypass_actors": [{"actor_id": 5, "actor_type": "RepositoryRole"}],
+        });
+        // Read-only token: GitHub omits `bypass_actors`.
+        let hidden = json!({"name": "main"});
+        assert!(matches(
+            &without_unreadable_fields(expected.clone(), &hidden),
+            &hidden
+        ));
+        // Visible but different: still drift.
+        let visible = json!({"name": "main", "bypass_actors": []});
+        assert!(!matches(
+            &without_unreadable_fields(expected, &visible),
+            &visible
+        ));
     }
 }
