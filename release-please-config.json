@@ -7,7 +7,7 @@
   "packages": {
     ".": {
       "release-type": "simple",
-      "package-name": "effective-money",
+      "package-name": "solde",
       "initial-version": "0.1.0",
       "changelog-path": "CHANGELOG.md",
       "extra-files": [

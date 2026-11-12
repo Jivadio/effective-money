@@ -8,7 +8,7 @@ use tower::ServiceExt as _;
 
 #[tokio::test]
 async fn healthz_returns_ok_and_version() {
-    let response = em_server::app()
+    let response = solde_server::app()
         .oneshot(Request::get("/healthz").body(Body::empty()).unwrap())
         .await
         .unwrap();
@@ -17,12 +17,12 @@ async fn healthz_returns_ok_and_version() {
     let body = response.into_body().collect().await.unwrap().to_bytes();
     let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
     assert_eq!(json["status"], "ok");
-    assert_eq!(json["version"], em_server::VERSION);
+    assert_eq!(json["version"], solde_server::VERSION);
 }
 
 #[tokio::test]
 async fn unknown_route_is_404() {
-    let response = em_server::app()
+    let response = solde_server::app()
         .oneshot(Request::get("/nope").body(Body::empty()).unwrap())
         .await
         .unwrap();

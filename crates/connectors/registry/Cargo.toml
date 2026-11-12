@@ -1,5 +1,5 @@
 [package]
-name = "em-connector-registry"
+name = "solde-connector-registry"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -8,12 +8,12 @@ repository.workspace = true
 publish = false
 
 [dependencies]
-em-connector-sdk = { path = "../connector-sdk" }
-em-connector-fake-bank = { path = "../fake-bank" }
-em-connector-enable-banking = { path = "../enable-banking" }
-em-connector-trade-republic = { path = "../trade-republic" }
-em-connector-banque-populaire = { path = "../banque-populaire" }
-em-connector-banque-postale = { path = "../banque-postale" }
+solde-connector-sdk = { path = "../connector-sdk" }
+solde-connector-fake-bank = { path = "../fake-bank" }
+solde-connector-enable-banking = { path = "../enable-banking" }
+solde-connector-trade-republic = { path = "../trade-republic" }
+solde-connector-banque-populaire = { path = "../banque-populaire" }
+solde-connector-banque-postale = { path = "../banque-postale" }
 
 [lints]
 workspace = true

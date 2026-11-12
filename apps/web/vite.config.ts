@@ -5,7 +5,7 @@ import { defineConfig, loadEnv } from 'vite';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
-  const apiTarget = env['EM_API_URL'] ?? 'http://localhost:8080';
+  const apiTarget = env['SOLDE_API_URL'] ?? 'http://localhost:8080';
   return {
     base: './',
     plugins: [react()],

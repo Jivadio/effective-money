@@ -26,7 +26,7 @@ export function App() {
 
   return (
     <main>
-      <h1>effective-money</h1>
+      <h1>Solde</h1>
       <p>Self-hosted personal finance. Home page placeholder.</p>
       <p role="status">
         {state.kind === 'loading' && 'Checking server...'}

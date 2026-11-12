@@ -1,5 +1,5 @@
 [package]
-name = "em-sync-facade"
+name = "solde-sync-facade"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -8,7 +8,7 @@ repository.workspace = true
 publish = false
 
 [dependencies]
-em-services = { path = "../services" }
+solde-services = { path = "../services" }
 
 [lints]
 workspace = true

@@ -1,5 +1,5 @@
 [package]
-name = "em-storage"
+name = "solde-storage"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -8,7 +8,7 @@ repository.workspace = true
 publish = false
 
 [dependencies]
-em-core-domain = { path = "../core-domain" }
+solde-core-domain = { path = "../core-domain" }
 
 [lints]
 workspace = true

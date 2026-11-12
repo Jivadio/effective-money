@@ -1,4 +1,4 @@
-# effective-money
+# Solde
 
 **Take back control of your finances.** A self-hosted personal finance app for your household: accounts, budgets, net worth and investments, all on your own machine, with an MCP server so your AI assistant can help too. Your data stays with you.
 

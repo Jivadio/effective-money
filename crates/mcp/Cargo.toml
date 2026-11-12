@@ -1,5 +1,5 @@
 [package]
-name = "em-mcp"
+name = "solde-mcp"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -8,8 +8,8 @@ repository.workspace = true
 publish = false
 
 [dependencies]
-em-services = { path = "../services" }
-em-sync-facade = { path = "../sync-facade" }
+solde-services = { path = "../services" }
+solde-sync-facade = { path = "../sync-facade" }
 
 [lints]
 workspace = true

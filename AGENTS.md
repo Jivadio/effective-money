@@ -4,7 +4,7 @@ Guidance for AI coding agents (and humans in a hurry). Tool-agnostic; `CLAUDE.md
 
 ## Project
 
-effective-money is an open-source, self-hostable personal finance app for a household: Rust core, React web app, planned Tauri desktop app and MCP server. Bank connectors (Banque Populaire, La Banque Postale, Trade Republic) and Enable Banking are planned. Status: early days (Milestone 0): workspace skeleton, `GET /healthz`, CI and governance exist; most crates are empty placeholders. Do not describe planned features as implemented.
+Solde is an open-source, self-hostable personal finance app for a household: Rust core, React web app, planned Tauri desktop app and MCP server. Bank connectors (Banque Populaire, La Banque Postale, Trade Republic) and Enable Banking are planned. Status: early days (Milestone 0): workspace skeleton, `GET /healthz`, CI and governance exist; most crates are empty placeholders. Do not describe planned features as implemented.
 
 ## Repo map
 
@@ -14,7 +14,7 @@ effective-money is an open-source, self-hostable personal finance app for a hous
 - `crates/secrets` master key and credential vault. `crates/sync` sync engine, the only user of `secrets`. `crates/sync-facade` narrow interface to `sync` for API/MCP.
 - `crates/api` REST API. `crates/mcp` MCP server.
 - `crates/connectors/*` bank connectors: `connector-sdk`, `registry`, `fake-bank`, `enable-banking`, `trade-republic`, `banque-populaire`, `banque-postale`. Allowed third-party crates: `crates/connectors/allowed-deps.toml`.
-- `apps/server` the binary (`em-server`). `apps/web` Vite + React + TypeScript SPA. UI work follows `DESIGN.md` (tokens, components, voice, EFIGS localization).
+- `apps/server` the binary (`solde-server`). `apps/web` Vite + React + TypeScript SPA. UI work follows `DESIGN.md` (tokens, components, voice, EFIGS localization).
 - `xtask` repo automation (`cargo xtask ...`). `supply-chain/` cargo-vet data. `docs/` documentation and decision records.
 
 ## Commands
@@ -29,7 +29,7 @@ cargo xtask check-deps                      # crate dependency rules
 cargo deny --locked check
 cargo audit --deny warnings
 cargo vet --locked
-cargo run -p em-server                      # listens on 0.0.0.0:8080 (EM_LISTEN_ADDR)
+cargo run -p solde-server                      # listens on 0.0.0.0:8080 (SOLDE_LISTEN_ADDR)
 
 pnpm install --frozen-lockfile
 pnpm --dir apps/web lint
@@ -37,7 +37,7 @@ pnpm --dir apps/web typecheck
 pnpm --dir apps/web test
 pnpm --dir apps/web build
 
-docker build -t effective-money:ci .
+docker build -t solde:ci .
 docker compose up                           # compose.sqlite.yaml for the SQLite variant
 ```
 

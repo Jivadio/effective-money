@@ -1,16 +1,16 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# effective-money: server + PostgreSQL. Usage: `docker compose up`.
+# Solde: server + PostgreSQL. Usage: `docker compose up`.
 # Skeleton for now: the server only serves /healthz; the database is not used yet.
 
-name: effective-money
+name: solde
 
 services:
   # One-shot init container: on the first start it generates the master key
-  # ONLY into the dedicated `em-keys` volume (never the data volume) and NEVER
+  # ONLY into the dedicated `solde-keys` volume (never the data volume) and NEVER
   # prints it. If a key already exists it does nothing.
   #
   # To use your own key instead, put it in a directory as `master.key` (readable
-  # by uid 65532, e.g. mode 0444) and set EM_KEYS_SOURCE=/path/to/that/dir.
+  # by uid 65532, e.g. mode 0444) and set SOLDE_KEYS_SOURCE=/path/to/that/dir.
   # Back the generated key up separately: without it the data cannot be decrypted.
   keygen:
     image: alpine:3.22
@@ -21,7 +21,7 @@ services:
     cap_add: [CHOWN]
     security_opt: ["no-new-privileges:true"]
     volumes:
-      - ${EM_KEYS_SOURCE:-em-keys}:/keys
+      - ${SOLDE_KEYS_SOURCE:-solde-keys}:/keys
     entrypoint: ["/bin/sh", "-ec"]
     command:
       - |
@@ -34,11 +34,11 @@ services:
         chmod 0400 /keys/master.key.tmp
         chown 65532:65532 /keys/master.key.tmp
         mv /keys/master.key.tmp /keys/master.key
-        echo "keygen: master key generated in the em-keys volume (not displayed)"
+        echo "keygen: master key generated in the solde-keys volume (not displayed)"
 
   server:
     build: .
-    image: ghcr.io/jivadio/effective-money:${EM_VERSION:-latest}
+    image: ghcr.io/jivadio/solde:${SOLDE_VERSION:-latest}
     restart: unless-stopped
     read_only: true
     cap_drop: [ALL]
@@ -51,16 +51,16 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      EM_LISTEN_ADDR: 0.0.0.0:8080
+      SOLDE_LISTEN_ADDR: 0.0.0.0:8080
       # The server refuses to start if this file cannot be opened. The key
       # itself is not used yet.
-      EM_MASTER_KEY_FILE: /run/em-keys/master.key
-      EM_DATABASE_URL: postgres://effective_money:${EM_POSTGRES_PASSWORD:-change-me}@postgres:5432/effective_money
+      SOLDE_MASTER_KEY_FILE: /run/solde-keys/master.key
+      SOLDE_DATABASE_URL: postgres://effective_money:${SOLDE_POSTGRES_PASSWORD:-change-me}@postgres:5432/effective_money
       RUST_LOG: ${RUST_LOG:-info}
     volumes:
-      - ${EM_KEYS_SOURCE:-em-keys}:/run/em-keys:ro
+      - ${SOLDE_KEYS_SOURCE:-solde-keys}:/run/solde-keys:ro
     ports:
-      - "${EM_PORT:-8080}:8080"
+      - "${SOLDE_PORT:-8080}:8080"
     # No container healthcheck yet: the distroless image has no shell or curl.
 
   postgres:
@@ -70,10 +70,10 @@ services:
     security_opt: ["no-new-privileges:true"]
     environment:
       POSTGRES_USER: effective_money
-      POSTGRES_PASSWORD: ${EM_POSTGRES_PASSWORD:-change-me}
+      POSTGRES_PASSWORD: ${SOLDE_POSTGRES_PASSWORD:-change-me}
       POSTGRES_DB: effective_money
     volumes:
-      - em-pgdata:/var/lib/postgresql/data
+      - solde-pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U effective_money -d effective_money"]
       interval: 5s
@@ -81,5 +81,5 @@ services:
       retries: 10
 
 volumes:
-  em-keys:
-  em-pgdata:
+  solde-keys:
+  solde-pgdata:
