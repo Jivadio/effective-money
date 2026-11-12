@@ -26,14 +26,15 @@ questions it blocks: the source choice in M3e, the Enable Banking connector
 |---|---|---|
 | Can an individual self-hosting Solde register **their own** application? | **Yes**, without a contract, in *restricted* production mode limited to accounts they link themselves. | § 3 |
 | Is it free? | **Yes** for that scope: "Use of the Control Panel and the API under these Terms is free of charge." Anything outside the scope needs a separate paid agreement. | § 3.2 |
-| Are Banque Populaire, La Banque Postale and Trade Republic covered? | **Yes, all three** — documented on their country pages (the coverage-table rows for LBP and TR were not read, § 10 item 11). The Trade Republic integration returns *only* amount, currency and booking date: no label, and no securities positions (the first is quoted, the second is inferred and still **[to confirm]**, § 10 item 9). | § 5 |
+| Are Banque Populaire, La Banque Postale and Trade Republic covered? | **Banque Populaire: yes** — its regional brands are read as integrated (AIS+PIS, sandbox and production). **La Banque Postale and Trade Republic: [to confirm]** — their country pages document the login flow and limitations, but their coverage-table rows (integrated APIs, "Supported usage: Personal") were not read (§ 10 item 11). The Trade Republic integration returns *only* amount, currency and booking date: no label, and no securities positions (the first is quoted, the second is inferred and still **[to confirm]**, § 10 item 9). | § 5 |
 | Can the app receive the consent callback on a local desktop? | **Only over HTTPS**, per third-party reports of the vendor's own error message (§ 6.2). Plain `http://127.0.0.1:<port>` is refused in production, so a local mode needs a TLS listener with a certificate, or a hosted callback. Custom `solde://` schemes are undocumented. | § 6 |
 | Is a household of several adults covered? | **Not as the terms are written** — production use is limited to accounts "belonging to" the Control Panel user who linked them, so a second adult needs their own application, and joint accounts need the vendor's written answer. This is the one finding that must go back to the maintainer before M3f. | § 3.4 |
 
 **Bottom line: Enable Banking is viable as an alternative source for a person
 syncing their own accounts, and it is the cheap path to La Banque Postale and
-Banque Populaire support (no browser automation anywhere). It is not, under the
-free terms, a drop-in replacement for the household model** — see § 3.4.
+Banque Populaire — the flows are documented, their coverage rows still have to
+be read (§ 10, item 11) — with no browser automation anywhere. It is not, under
+the free terms, a drop-in replacement for the household model** — see § 3.4.
 
 ## 1. What the service is
 
@@ -279,7 +280,7 @@ plan and it needs an answer from the vendor, not an interpretation.
 | Renewal | only when `valid_until` is reached; "no separate consent refresh process" | FAQ |
 | JWT lifetime | ≤ 86400 s | FAQ |
 | Background data fetch | many ASPSPs cap at **4 fetches a day** when the PSU is not online; on `ASPSP_RATE_LIMIT_EXCEEDED` "continue data fetching after 6 hours" | FAQ, *rate limits* |
-| "Online" fetch | sending PSU headers (`Psu-Ip-Address`, `Psu-User-Agent`, …) tells the bank a human is present, and its background limits no longer apply | FAQ, *PSU headers* |
+| "Online" fetch | sending PSU headers (`Psu-Ip-Address`, `Psu-User-Agent`, …) tells the bank a human is present, and its background limits no longer apply — **all of the bank's `required_psu_headers` or none**: "Either all required PSU headers or none of PSU headers are to be provided, otherwise `PSU_HEADER_NOT_PROVIDED` error will be returned" | FAQ, *PSU headers*; API reference, `required_psu_headers` |
 | Transaction history | "generally around" 90 days once the short window after the first authorisation has passed; "most ASPSPs provide access to at least one year" | FAQ, *90 days* / *how far back* |
 | Truly full history | only in the ~1 h right after the first authorisation | FAQ |
 | Framing | consent cannot run in an iframe | FAQ |
@@ -311,16 +312,17 @@ and limitations.
 
 | Bank | In Enable Banking | Authentication | Data you actually get |
 |---|---|---|---|
-| **La Banque Postale** | Yes — documented among "the most widely used French ASPSPs", with its own flow described: "uses a browser-based redirect flow and users are required to input the 10-digit code used by the bank for their identification. **App switch is not supported.**" Its coverage-table row was not in the visible page slice | redirect flow in the browser, 10-digit customer code, no app switch | standard PSD2 account information; the web-only savings products are the ones the *direct* channel reaches and PSD2 may not (§ 5.1) |
+| **La Banque Postale** | **[to confirm]** for coverage — documented among "the most widely used French ASPSPs", with its own flow described: "uses a browser-based redirect flow and users are required to input the 10-digit code used by the bank for their identification. **App switch is not supported.**" Its coverage-table row was not in the visible page slice | redirect flow in the browser, 10-digit customer code, no app switch | standard PSD2 account information; the web-only savings products are the ones the *direct* channel reaches and PSD2 may not (§ 5.1) |
 | **Banque Populaire (BPCE)** | Yes — one ASPSP **per regional bank** ("customers shall choose their local bank"); the regional brands read in the coverage table are integrated (AIS+PIS, sandbox+production) | redirect, SCA in the Banque Populaire app, app switch when installed; BRED Banque Populaire is a separate flow with its own username/password | standard PSD2 account information |
-| **Trade Republic** | Yes — "an online bank headquartered in Germany, operating in the following countries: AT, BE, DE, EE, ES, FI, FR, …" (documented on the German page; coverage row not read) | redirect + app | **degraded**: "As of August 2026, the PSD2 API provided by the bank only provides the following transaction data: amount, currency and booking date. Providing additional descriptive data is not on the bank's current roadmap. Limitation applies to all countries." |
+| **Trade Republic** | **[to confirm]** for coverage — "an online bank headquartered in Germany, operating in the following countries: AT, BE, DE, EE, ES, FI, FR, …" (documented on the German page; coverage row not read) | redirect + app | **degraded**: "As of August 2026, the PSD2 API provided by the bank only provides the following transaction data: amount, currency and booking date. Providing additional descriptive data is not on the bank's current roadmap. Limitation applies to all countries." |
 
 ### 5.1 What that means for the plan
 
-- **La Banque Postale and Banque Populaire are covered** — the alternative source
-  for both is real, and it removes the browser-helper from the critical path for
-  anyone who chooses it. The direct-connector track stays useful (a working
-  direct connector is still the plan's preferred source, and — as our own
+- **Banque Populaire is confirmed, La Banque Postale is documented but not
+  confirmed** — for both, the alternative source removes the browser-helper from
+  the critical path for anyone who chooses it, once LBP's coverage row is read
+  (§ 10, item 11). The direct-connector track stays useful (a working direct
+  connector is still the plan's preferred source, and — as our own
   `docs/connectors/banque-postale/protocol.md` notes — the web channel is what
   reaches LBP's regulated savings products), but "LBP only works with a
   browser-helper" is no longer a blocker for users.
@@ -440,7 +442,7 @@ account for in the rate-limit budget.
 | `transaction_amount.currency` | `currency` |
 | `remittance_information[]` + `creditor`/`debtor` name | `label` — joined as the bank gave it, untrusted text; **empty for Trade Republic** |
 | `status`: `BOOK` → `Booked`, `PDNG` → `Pending` | `status` |
-| `transaction_id` absent | fall back to `ids::synthesize_remote_ids` |
+| `entry_reference` absent, or duplicated within the account | fall back to `ids::synthesize_remote_ids` |
 
 Twins on the same day (two identical coffees) are preserved as long as
 `entry_reference` is unique per account — and the SDK's id scheme only needs
@@ -448,6 +450,12 @@ uniqueness within one account. **[to confirm]** on the Mock ASPSP and then on a
 real LBP account: that two identical same-day transactions really do carry two
 distinct `entry_reference` values. If they do not, the connector must fall back
 to synthesized ids, exactly like a bank without stable ids.
+
+Pending rows are the case to watch: a `PDNG` transaction may carry no
+`entry_reference` at all, so it lands in the synthesized-id branch. The engine
+already expects that — M3c of the detailed plan replaces pending transactions
+without a stable id **wholesale** on each sync, and keeps a pending row that does
+have one until it is booked.
 
 ### 7.3 `login`, `Unattended`, and the SCA marking
 
@@ -467,10 +475,13 @@ to synthesized ids, exactly like a bank without stable ids.
 - **`valid_until` is an upper bound, not a guarantee.** Enable Banking has a
   dedicated FAQ entry — "Why does the API return `EXPIREDSESSION` when the
   session has `validuntil` in the future?" — so a live session can stop working
-  before the stored date. The connector must map that error to
-  `SessionExpired` and let the sync engine fall back to `needs_user_action`;
-  the stored expiry only lets `Unattended` refuse *without* a request, it does
-  not entitle it to assume the session is alive.
+  before the stored date. Note the vendor's own spelling is inconsistent: the
+  FAQ heading writes `EXPIREDSESSION`/`validuntil`, while the error code to match
+  on is **`EXPIRED_SESSION`** (`ErrorCode` in the API reference, and the other
+  five FAQ answers spell it that way). The connector must match `EXPIRED_SESSION`
+  and map it to `SessionExpired`, letting the sync engine fall back to
+  `needs_user_action`; the stored expiry only lets `Unattended` refuse *without*
+  a request, it does not entitle it to assume the session is alive.
 - **`429` with `ASPSP_RATE_LIMIT_EXCEEDED`** → `RateLimited { retry_after: 6 h }`
   (the vendor's own recommendation). Other `429`s are ours, not the bank's.
 - **`error=access_denied`** on the callback → `ChallengeCancelled`
@@ -506,7 +517,7 @@ fully offline.
   data.
 - **Scenarios to model**, mirroring the cases the contributor fixtures already
   cover for LBP: successful consent, cancelled consent (`access_denied`),
-  expired session (`401` / `EXPIREDSESSION`), rate limited (`429` with
+  expired session (`401` with `EXPIRED_SESSION`), rate limited (`429` with
   `ASPSP_RATE_LIMIT_EXCEEDED`), two pages of transactions, one pending
   transaction later booked, two identical same-day transactions, a server error
   (`500`), and Trade Republic's label-less payload.
@@ -535,7 +546,13 @@ fully offline.
    connector or manual input.
 6. **Open point 17 (does an interactive sync count in the 4-a-day limit) has a
    natural answer**: send PSU headers on user-initiated syncs, and the bank's
-   background cap does not apply (FAQ). Scheduled syncs stay conservative.
+   background cap does not apply (FAQ). Scheduled syncs stay conservative. Two
+   implementation rules come with it: send **all** of the ASPSP's
+   `required_psu_headers` or **none** (a partial set is answered
+   `422 PSU_HEADER_NOT_PROVIDED`), and read that list from `GET /aspsps` at
+   connection time rather than hard-coding header names — it is per bank. The
+   FAQ heading spells the code `PSUHEADERNOT_PROVIDED`; the `ErrorCode` enum
+   spells it `PSU_HEADER_NOT_PROVIDED`, which is the one to match.
 7. **Open point 5 (`Degraded` status) becomes more than cosmetic**: the TR
    channel works but delivers no label and no positions, which is exactly a
    "degraded but functional" state to display to the user.
