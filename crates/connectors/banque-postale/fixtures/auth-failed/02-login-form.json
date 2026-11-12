@@ -1,0 +1,8 @@
+{
+  "request": { "method": "GET", "path": "/wsost/OstBrokerWeb/loginform" },
+  "response": {
+    "status": 200,
+    "headers": { "content-type": "text/html" },
+    "body": "<form id=\"form-xo-1\" method=\"post\" action=\"/wsost/OstBrokerWeb/auth\" name=\"formAccesCompte\" onSubmit=\"return false;\"><div id=\"hidden\"><input type=\"hidden\" name=\"urlbackend\" value=\"%2Fvoscomptes%2FcanalXHTML%2Fidentif.ea%3Forigin%3Dparticuliers\" /><input type=\"hidden\" name=\"origin\" value=\"particuliers\" /><input type=\"hidden\" name=\"cv\" value=\"true\" /><input type=\"hidden\" name=\"cvvs\" value=\"\" /><input type=\"hidden\" id=\"iscd\" name=\"iscdName\" value=\"0\" /><input type=\"hidden\" id=\"clt\" name=\"cltName\" value=\"0\" /></div><input type=\"text\" id=\"identifiant\" maxlength=\"10\" name=\"username\" /><input type=\"text\" id=\"password\" name=\"password\" maxlength=\"6\" /><div class=\"flex-container flex-center mt-16\" data-tb-cvd-id=\"password\"><div data-tb-cvd-keys\"><button type=\"button\">9</button><button type=\"button\">1</button><button type=\"button\">4</button><button type=\"button\">7</button><button type=\"button\">0</button><button type=\"button\">5</button><button type=\"button\">2</button><button type=\"button\">8</button><button type=\"button\">6</button><button type=\"button\">3</button></div></div><button id=\"btnContinuer\" type=\"button\">Continuer</button><button data-tb-cvd-valider id=\"btnConfirmer\" type=\"submit\">Se connecter</button></form>"
+  }
+}

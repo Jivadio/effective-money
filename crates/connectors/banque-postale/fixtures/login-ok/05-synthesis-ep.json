@@ -1,0 +1,8 @@
+{
+  "request": { "method": "GET", "path": "/voscomptes/canalXHTML/comptesCommun/synthese_ep/afficheSyntheseEP-synthese_ep.ea" },
+  "response": {
+    "status": 200,
+    "headers": { "content-type": "text/html" },
+    "body": "<ul><li><div class=\"account-resume2020 account-resume--cne\"><div class=\"cartridge\"><div class=\"account-data\"><h3 class=\"title\"><a href=\"https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/CNE/releveCNE/init-releve_cne.ea?compte.numero=22222222-2222-2222-2222-222222222222&amp;typeRecherche=15\"><span class=\"pseudo-h3\">Livret A </span><span>N° 00000000002</span></a></h3></div><div class=\"account-amount\"><div class=\"account-amount-group\"><p class=\"amount-euro\"><span class=\"lib sr-only\">Solde </span>+ 10 000,00 €</p></div></div></div></div></li><li><div class=\"account-resume2020 account-resume--cne\"><div class=\"cartridge\"><div class=\"account-data\"><h3 class=\"title\"><a href=\"https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/CNE/releveCNE/init-releve_cne.ea?compte.numero=33333333-3333-3333-3333-333333333333&amp;typeRecherche=15\"><span class=\"pseudo-h3\">Livret d'Épargne Populaire </span><span>N° 00000000003</span></a></h3></div><div class=\"account-amount\"><div class=\"account-amount-group\"><p class=\"amount-euro\"><span class=\"lib sr-only\">Solde </span>+ 5 000,00 €</p></div></div></div></div></li></ul>"
+  }
+}

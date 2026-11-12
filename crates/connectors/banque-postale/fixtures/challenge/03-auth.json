@@ -1,0 +1,10 @@
+{
+  "request": { "method": "POST", "path": "/wsost/OstBrokerWeb/auth" },
+  "response": {
+    "status": 302,
+    "headers": {
+      "location": "https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&phase=2&cu=authentInfo",
+      "set-cookie": "LBPSESSION=CANARY-7f3a9c; Path=/; HttpOnly"
+    }
+  }
+}
