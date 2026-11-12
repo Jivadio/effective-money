@@ -2,6 +2,8 @@
 //! Repository automation, run with `cargo xtask <command>`.
 
 mod check_deps;
+mod connector_lint;
+mod fixtures_scrub;
 mod rulesets;
 
 use std::process::ExitCode;
@@ -10,12 +12,13 @@ const USAGE: &str = "\
 usage: cargo xtask <command>
 
 commands:
-  check-deps              enforce the crate dependency rules
+  check-deps              enforce the crate dependency rules and connector guardrails
+  fixtures-scrub-check    look for secrets or personal data in connector fixtures
+  clippy-connectors       clippy on bank connector crates with disallowed_* lints forbidden
   rulesets check          compare .github/rulesets/main.json to the live ruleset
   rulesets apply          create/update the live ruleset from .github/rulesets/main.json
   openapi                 not implemented yet (planned with the REST API)
   schema-parity           not implemented yet (planned with the storage layer)
-  fixtures-scrub-check    not implemented yet (planned with the direct connectors)
   connector-smoke <bank>  not implemented yet (planned with the direct connectors)";
 
 fn main() -> ExitCode {
@@ -30,9 +33,8 @@ fn main() -> ExitCode {
             "schema-parity",
             "the storage layer lands (Postgres/SQLite schema parity)",
         ),
-        ["fixtures-scrub-check", ..] => {
-            not_implemented("fixtures-scrub-check", "the direct bank connectors land")
-        }
+        ["fixtures-scrub-check"] => fixtures_scrub::run(check_deps::workspace_root()),
+        ["clippy-connectors"] => connector_lint::run_clippy(check_deps::workspace_root()),
         ["connector-smoke", ..] => {
             not_implemented("connector-smoke", "the direct bank connectors land")
         }

@@ -1,0 +1,4 @@
+{
+  "request": { "method": "GET", "path": "/api/accounts/CHK-001/transactions", "query": "page=1" },
+  "response": { "status": 200, "body": { "next_page": null, "transactions": [] } }
+}

@@ -1,0 +1,77 @@
+# Clippy configuration for every crate under crates/connectors/ (clippy uses
+# the nearest clippy.toml, so this one replaces the workspace root file here).
+#
+# Bank connectors must do all network I/O through the SDK clients
+# (`HttpClient`, `BrowserClient`), and have no business starting or ending
+# processes or touching the environment. Direct HTTP, WebSocket and socket
+# types, processes (including `exit` and `abort`) and environment access are
+# banned below. `solde-connector-sdk` lifts the ban with a crate-level
+# `#![allow(...)]`, since it is where that I/O is implemented.
+# `cargo xtask check-deps` rejects that opt-out anywhere else.
+#
+# These are guardrails, not a sandbox: code review is the real boundary.
+
+# Same as the workspace root clippy.toml.
+allow-unwrap-in-tests = true
+
+disallowed-types = [
+    { path = "std::net::TcpStream", reason = "use the SDK HttpClient or BrowserClient" },
+    { path = "std::net::TcpListener", reason = "connectors must not open sockets" },
+    { path = "std::net::UdpSocket", reason = "connectors must not open sockets" },
+    { path = "reqwest::Client", reason = "use solde_connector_sdk::http::HttpClient", allow-invalid = true },
+    { path = "reqwest::blocking::Client", reason = "use solde_connector_sdk::http::HttpClient", allow-invalid = true },
+    { path = "hyper::client::conn::http1::SendRequest", reason = "use solde_connector_sdk::http::HttpClient", allow-invalid = true },
+    { path = "tungstenite::WebSocket", reason = "WebSockets go through the SDK", allow-invalid = true },
+    { path = "tokio_tungstenite::WebSocketStream", reason = "WebSockets go through the SDK", allow-invalid = true },
+    { path = "tokio::net::TcpStream", reason = "use the SDK HttpClient or BrowserClient", allow-invalid = true },
+    { path = "std::os::unix::net::UnixStream", reason = "connectors must not open sockets", allow-invalid = true },
+    { path = "std::os::unix::net::UnixListener", reason = "connectors must not open sockets", allow-invalid = true },
+    { path = "std::os::unix::net::UnixDatagram", reason = "connectors must not open sockets", allow-invalid = true },
+    { path = "std::process::Command", reason = "connectors must not start processes" },
+    { path = "std::fs::File", reason = "connectors do not touch the file system" },
+    { path = "std::fs::OpenOptions", reason = "connectors do not touch the file system" },
+]
+
+disallowed-methods = [
+    { path = "std::net::TcpStream::connect", reason = "use the SDK HttpClient or BrowserClient" },
+    { path = "std::net::TcpStream::connect_timeout", reason = "use the SDK HttpClient or BrowserClient" },
+    { path = "std::net::TcpListener::bind", reason = "connectors must not open sockets" },
+    { path = "std::net::UdpSocket::bind", reason = "connectors must not open sockets" },
+    { path = "reqwest::get", reason = "use solde_connector_sdk::http::HttpClient", allow-invalid = true },
+    { path = "tokio_tungstenite::connect_async", reason = "WebSockets go through the SDK", allow-invalid = true },
+    { path = "std::process::Command::new", reason = "connectors must not start processes" },
+    { path = "std::process::exit", reason = "connectors return errors; they never end the process" },
+    { path = "std::process::abort", reason = "connectors return errors; they never end the process" },
+    { path = "std::env::var", reason = "configuration comes from the app; tests use testkit::live_credentials" },
+    { path = "std::env::var_os", reason = "configuration comes from the app; tests use testkit::live_credentials" },
+    { path = "std::env::vars", reason = "configuration comes from the app" },
+    { path = "std::env::vars_os", reason = "configuration comes from the app" },
+    { path = "std::env::args", reason = "configuration comes from the app" },
+    { path = "std::env::args_os", reason = "configuration comes from the app" },
+    { path = "std::env::current_dir", reason = "connectors do not touch the file system" },
+    { path = "std::env::set_current_dir", reason = "connectors do not touch the file system" },
+    { path = "std::env::temp_dir", reason = "connectors do not touch the file system" },
+    { path = "std::env::set_var", reason = "connectors must not change the process environment" },
+    { path = "std::env::remove_var", reason = "connectors must not change the process environment" },
+    { path = "std::fs::read", reason = "connectors do not touch the file system" },
+    { path = "std::fs::read_to_string", reason = "connectors do not touch the file system" },
+    { path = "std::fs::read_dir", reason = "connectors do not touch the file system" },
+    { path = "std::fs::write", reason = "connectors do not touch the file system" },
+    { path = "std::fs::create_dir_all", reason = "connectors do not touch the file system" },
+    { path = "std::fs::remove_file", reason = "connectors do not touch the file system" },
+    { path = "std::fs::remove_dir_all", reason = "connectors do not touch the file system" },
+    { path = "std::fs::copy", reason = "connectors do not touch the file system" },
+    { path = "std::fs::rename", reason = "connectors do not touch the file system" },
+    { path = "std::fs::File::open", reason = "connectors do not touch the file system" },
+    { path = "std::fs::File::create", reason = "connectors do not touch the file system" },
+    # The HTTP client and the login context come from the sync engine
+    # (ConnectorEnv, login's `ctx`), never from the connector itself. Tests use
+    # the testkit (replay_env, live_env, record_env, interactive, ScriptedBrowser).
+    { path = "solde_connector_sdk::http::HttpClient::new", reason = "the HTTP client comes from the ConnectorEnv", allow-invalid = true },
+    { path = "solde_connector_sdk::http::HttpClient::replay", reason = "the HTTP client comes from the ConnectorEnv", allow-invalid = true },
+    { path = "solde_connector_sdk::LoginContext::interactive", reason = "only the sync engine builds login contexts", allow-invalid = true },
+    { path = "solde_connector_sdk::LoginContext::with_redirect_target", reason = "only the sync engine builds login contexts", allow-invalid = true },
+    { path = "solde_connector_sdk::browser::BrowserClient::new", reason = "the browser comes from the ConnectorEnv", allow-invalid = true },
+    { path = "solde_connector_sdk::browser::BrowserClient::from_env", reason = "the browser comes from the ConnectorEnv", allow-invalid = true },
+    { path = "solde_connector_sdk::browser::BrowserClient::from_backend", reason = "the browser comes from the ConnectorEnv; tests use testkit::ScriptedBrowser::client", allow-invalid = true },
+]

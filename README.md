@@ -4,7 +4,7 @@
 
 Solde **reads** your accounts and never moves money: no transfers, no payments. Its job is to show you, in three seconds, where you stand.
 
-> **Early days, come build it with us!** The project has just started: the repository skeleton and CI are in place, and the features below are plans, not things you can use yet. Please don't point it at real bank credentials for now.
+> **Early days, come build it with us!** The project has just started: the repository skeleton, CI and the connector SDK (with a fake demo bank) are in place, and the features below are plans, not things you can use yet. Please don't point it at real bank credentials for now.
 
 <!-- Screenshots: none yet. Placeholder until the first usable release (0.1.0). -->
 *Screenshots: not available yet.*
@@ -56,6 +56,8 @@ apps/server, apps/desktop -> api, mcp, sync (wiring)
 FORBIDDEN: api|mcp|services|pricing|analytics -> secrets ; api|mcp -> sync ;
            connectors -> core-domain|storage
 ```
+
+Bank connector crates may declare only `connector-sdk` and the crates listed in `crates/connectors/allowed-deps.toml` as direct dependencies, and reach the network only through the SDK clients. Want to add a bank? See [docs/connectors/writing-a-connector.md](docs/connectors/writing-a-connector.md).
 
 ## Installation (planned)
 

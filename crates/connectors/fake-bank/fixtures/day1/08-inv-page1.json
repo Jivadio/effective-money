@@ -1,0 +1,8 @@
+{
+  "request": { "method": "GET", "path": "/api/accounts/INV-001/transactions", "query": "page=1" },
+  "response": {
+    "status": 200,
+    "headers": { "content-type": "application/json" },
+    "body": { "next_page": null, "transactions": [] }
+  }
+}

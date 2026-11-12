@@ -1,0 +1,4 @@
+{
+  "request": { "method": "POST", "path": "/api/login/otp" },
+  "response": { "status": 401, "body": { "error": "invalid_code" } }
+}

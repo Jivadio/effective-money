@@ -1,0 +1,18 @@
+{
+  "request": { "method": "GET", "path": "/api/accounts/CHK-001/transactions", "query": "page=1" },
+  "response": {
+    "status": 200,
+    "headers": { "content-type": "application/json" },
+    "body": {
+      "next_page": 2,
+      "transactions": [
+        { "id": null, "date": "2026-01-16", "value_date": null, "amount": "-6.20", "currency": "EUR", "label": "CARD PAYMENT PHARMACY", "status": "booked" },
+        { "id": null, "date": "2026-01-15", "value_date": "2026-01-14", "amount": "-12.50", "currency": "EUR", "label": "CARD PAYMENT SUPERMARKET 14/01", "status": "booked" },
+        { "id": null, "date": "2026-01-15", "value_date": null, "amount": "-8.90", "currency": "EUR", "label": "CARD PAYMENT BAKERY", "status": "booked" },
+        { "id": null, "date": "2026-01-13", "value_date": "2026-01-13", "amount": "-3.50", "currency": "EUR", "label": "CARD PAYMENT COFFEE SHOP", "status": "booked" },
+        { "id": null, "date": "2026-01-13", "value_date": "2026-01-13", "amount": "-3.50", "currency": "EUR", "label": "CARD PAYMENT COFFEE SHOP", "status": "booked" },
+        { "id": "tx-1002", "date": "2026-01-12", "value_date": "2026-01-12", "amount": "2500.00", "currency": "EUR", "label": "TRANSFER SALARY", "status": "booked" }
+      ]
+    }
+  }
+}

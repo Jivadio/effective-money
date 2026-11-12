@@ -7,7 +7,7 @@ We are at the very start. Pages marked "planned" describe where we are heading, 
 - [adr/0001-architecture-v1.md](adr/0001-architecture-v1.md) - architecture decision record for V1
 - [security-model.md](security-model.md) - secrets and threat model (planned)
 - [spikes/](spikes/) - feasibility studies for each bank (empty for now)
-- [connectors/](connectors/) - per-bank notes and the connector guide (coming)
+- [connectors/writing-a-connector.md](connectors/writing-a-connector.md) - how to write a bank connector; per-bank notes live in [connectors/](connectors/)
 
 ## For maintainers
 

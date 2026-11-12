@@ -1,0 +1,4 @@
+{
+  "request": { "method": "GET", "path": "/api/session" },
+  "response": { "status": 401, "headers": { "content-type": "application/json" }, "body": { "error": "session_expired" } }
+}

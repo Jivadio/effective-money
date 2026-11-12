@@ -1,0 +1,11 @@
+{
+  "request": { "method": "POST", "path": "/api/login/otp" },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json",
+      "set-cookie": ["SID=CANARY-7f3a9c-sid; Path=/; Secure; HttpOnly", "lang=SCRUBBED; Path=/"]
+    },
+    "body": { "access_token": "tok-CANARY-7f3a9c", "valid_until": "2026-04-15" }
+  }
+}

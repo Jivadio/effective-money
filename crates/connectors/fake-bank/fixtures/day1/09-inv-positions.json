@@ -1,0 +1,13 @@
+{
+  "request": { "method": "GET", "path": "/api/accounts/INV-001/positions" },
+  "response": {
+    "status": 200,
+    "headers": { "content-type": "application/json" },
+    "body": {
+      "positions": [
+        { "isin": "XX0000000001", "name": "EXAMPLE WORLD INDEX FUND", "quantity": "12.5", "unit_price": "98.40", "market_value": "1230.00", "currency": "EUR" },
+        { "isin": "XX0000000002", "name": "EXAMPLE BOND FUND", "quantity": "10", "unit_price": "123.81", "market_value": "1238.10", "currency": "EUR" }
+      ]
+    }
+  }
+}

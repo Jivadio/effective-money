@@ -1,0 +1,14 @@
+{
+  "request": { "method": "GET", "path": "/api/accounts" },
+  "response": {
+    "status": 200,
+    "headers": { "content-type": "application/json" },
+    "body": {
+      "accounts": [
+        { "id": "CHK-001", "type": "checking", "name": "Jane Doe current account", "iban": "FR7600000000000000000000000", "currency": "EUR", "balance": "1523.47" },
+        { "id": "SAV-001", "type": "savings", "name": "Savings book", "iban": null, "currency": "EUR", "balance": "5000.00" },
+        { "id": "INV-001", "type": "investment", "name": "Securities account", "iban": null, "currency": "EUR", "balance": "2468.10" }
+      ]
+    }
+  }
+}
