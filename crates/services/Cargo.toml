@@ -1,0 +1,18 @@
+[package]
+name = "em-services"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+em-core-domain = { path = "../core-domain" }
+em-storage = { path = "../storage" }
+em-categorization = { path = "../categorization" }
+em-analytics = { path = "../analytics" }
+em-pricing = { path = "../pricing" }
+
+[lints]
+workspace = true

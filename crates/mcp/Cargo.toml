@@ -1,0 +1,15 @@
+[package]
+name = "em-mcp"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+em-services = { path = "../services" }
+em-sync-facade = { path = "../sync-facade" }
+
+[lints]
+workspace = true
