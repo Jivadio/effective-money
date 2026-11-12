@@ -8,6 +8,7 @@
     ".": {
       "release-type": "simple",
       "package-name": "effective-money",
+      "initial-version": "0.1.0",
       "changelog-path": "CHANGELOG.md",
       "extra-files": [
         {
