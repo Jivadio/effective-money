@@ -1,0 +1,37 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# release-please: maintains a release PR from Conventional Commits on main and
+# tags the release when it is merged. Multi-arch container images, SBOM and
+# desktop artefacts will be added in later milestones.
+#
+# Do NOT merge the first release PR (proposing 0.1.0) before the storage
+# milestone ships: 0.1.0 is reserved for the first usable server release.
+name: release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  release-please:
+    name: release-please
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          # PRs opened with the default GITHUB_TOKEN do not trigger workflows, so
+          # the required checks never run and the release PR cannot be merged.
+          # Set RELEASE_PLEASE_TOKEN to a GitHub App token or fine-grained PAT
+          # (contents + pull requests: write) so checks run on release PRs.
+          # Prefer a GitHub App token: its release PRs are opened by a bot account,
+          # which the DCO check skips. A PAT opens them as a person, so DCO then
+          # requires a matching Signed-off-by on every release commit.
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

@@ -1,0 +1,21 @@
+# Build outputs
+/target/
+**/target/
+node_modules/
+dist/
+.pnpm-store/
+
+# Local tooling / agent state
+.omc/
+.idea/
+.vscode/
+.DS_Store
+
+# Secrets & local data — never commit
+.env
+.env.*
+!.env.example
+*.key
+/data/
+/keys/
+spikes/**/recordings/raw/

@@ -1,0 +1,7 @@
+# Allow-list of third-party crates that connector crates (crates/connectors/*)
+# may pull in, checked over the TRANSITIVE dependency closure by
+# `cargo xtask check-deps`. Adding an entry requires a core-maintainer review
+# (see CODEOWNERS) and a `cargo vet` audit or trusted import.
+#
+# Format: crate names (not versions); every version of a listed crate is allowed.
+allowed = []

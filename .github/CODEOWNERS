@@ -1,0 +1,24 @@
+# Owner of everything for now: the repository owner. Replace or extend with more
+# maintainers as they join.
+
+*                                       @Jivadio
+
+# Sensitive paths (these get extra review once there is more than one maintainer).
+/crates/secrets/                        @Jivadio
+/crates/sync/                           @Jivadio
+/crates/sync-facade/                    @Jivadio
+/crates/mcp/                            @Jivadio
+/crates/connectors/connector-sdk/       @Jivadio
+/crates/connectors/allowed-deps.toml    @Jivadio
+/crates/connectors/*/Cargo.toml         @Jivadio
+/supply-chain/                          @Jivadio
+/deny.toml                              @Jivadio
+/xtask/                                 @Jivadio
+/Cargo.toml                             @Jivadio
+/.cargo/                                @Jivadio
+/.github/                               @Jivadio
+/SECURITY.md                            @Jivadio
+/AGENTS.md                              @Jivadio
+
+# Each bank connector can get its own named maintainer once it exists, e.g.:
+# /crates/connectors/banque-populaire/  @maintainer-handle

@@ -1,0 +1,15 @@
+{
+  "name": "effective-money",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "web:dev": "pnpm --dir apps/web dev",
+    "web:lint": "pnpm --dir apps/web lint",
+    "web:test": "pnpm --dir apps/web test",
+    "web:build": "pnpm --dir apps/web build"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "21.2.4",
+    "@commitlint/config-conventional": "21.2.4"
+  }
+}

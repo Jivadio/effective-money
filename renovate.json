@@ -1,0 +1,46 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests",
+    ":semanticCommits"
+  ],
+  "enabledManagers": [
+    "cargo",
+    "npm",
+    "github-actions",
+    "dockerfile",
+    "docker-compose"
+  ],
+  "dockerfile": {
+    "pinDigests": true
+  },
+  "docker-compose": {
+    "pinDigests": true
+  },
+  "labels": [
+    "dependencies"
+  ],
+  "automerge": false,
+  "packageRules": [
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "pinDigests": true
+    },
+    {
+      "matchFileNames": [
+        "crates/connectors/**",
+        "crates/secrets/**",
+        "supply-chain/**",
+        "deny.toml"
+      ],
+      "automerge": false,
+      "reviewers": [
+        "Jivadio"
+      ]
+    }
+  ],
+  "commitBody": "Signed-off-by: renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>"
+}

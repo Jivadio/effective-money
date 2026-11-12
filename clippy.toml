@@ -1,0 +1,2 @@
+# `clippy::unwrap_used` is denied workspace-wide but allowed in tests.
+allow-unwrap-in-tests = true
