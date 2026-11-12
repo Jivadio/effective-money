@@ -235,7 +235,11 @@ fn json_secret_findings(value: &serde_json::Value, secret: Option<&str>) -> usiz
     match (value, secret) {
         (Value::Object(map), _) => map
             .iter()
-            .map(|(k, v)| json_secret_findings(v, secret.or(is_secret_key(k).then_some(k))))
+            // The nearest secret key wins, so `set-cookie` under `session`
+            // gets the cookie rule.
+            .map(|(k, v)| {
+                json_secret_findings(v, is_secret_key(k).then_some(k.as_str()).or(secret))
+            })
             .sum(),
         (Value::Array(items), _) => items.iter().map(|v| json_secret_findings(v, secret)).sum(),
         (Value::String(s), Some(key)) => usize::from(!secret_text_ok(key, s)),
@@ -505,6 +509,9 @@ mod tests {
             ),
             (r#"{"cookie": "a=SCRUBBED; b=real"}"#, 1),
             (r#"{"credentials": ["x"]}"#, 1),
+            // The nearest secret key wins: a cookie under `session` uses the cookie rule.
+            (r#"{"session": {"set-cookie": "SID=SCRUBBED; Path=/"}}"#, 0),
+            (r#"{"session": {"set-cookie": "SID=abc; Path=/"}}"#, 1),
             // Scrubbed, empty, canary, zero, booleans and null pass.
             (
                 r#"{"pin": 0, "otp": "SCRUBBED", "code": "", "token": "tok-CANARY-7f3a9c",

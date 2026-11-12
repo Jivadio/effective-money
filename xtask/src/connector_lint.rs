@@ -230,7 +230,13 @@ fn check_source(source: &str, in_tests: bool) -> Vec<String> {
             if !member.starts_with("std") {
                 continue;
             }
-            let alias_of_std = member.starts_with("stdas") || member.contains("selfas");
+            // `std as s`, or `self as s` directly inside `std::{…}` (not deeper:
+            // `std::fmt::{self as fmt}` aliases an allowed module).
+            let alias_of_std = member.starts_with("stdas")
+                || member
+                    .strip_prefix("std::{")
+                    .and_then(|g| g.strip_suffix('}'))
+                    .is_some_and(|g| top_level_items(g).iter().any(|i| i.starts_with("selfas")));
             let module = ["process", "env", "os", "fs"].iter().any(|m| {
                 member.starts_with("std::{")
                     && member
@@ -249,6 +255,25 @@ fn check_source(source: &str, in_tests: bool) -> Vec<String> {
 
 /// The top-level paths of a compact `use` tree: `{a,b::{c,d}}` gives `a` and
 /// `b::{c,d}`; a path without a leading group is returned as is.
+/// Splits the inside of a `{…}` use group on its top-level commas.
+fn top_level_items(group: &str) -> Vec<&str> {
+    let mut items = Vec::new();
+    let (mut depth, mut start) = (0usize, 0usize);
+    for (i, c) in group.char_indices() {
+        match c {
+            '{' => depth += 1,
+            '}' => depth = depth.saturating_sub(1),
+            ',' if depth == 0 => {
+                items.push(&group[start..i]);
+                start = i + 1;
+            }
+            _ => {}
+        }
+    }
+    items.push(&group[start..]);
+    items
+}
+
 fn root_members(path: &str) -> Vec<&str> {
     let Some(inner) = path.strip_prefix('{').and_then(|p| p.strip_suffix('}')) else {
         return vec![path];
@@ -632,6 +657,8 @@ mod tests {
             "use {core::fmt, std::io};",
             "fn f<'a>(x: &'a str) -> char { '\\'' }",
             "use std::{collections::BTreeMap, io};",
+            "use std::fmt::{self as fmt};",
+            "use std::{fmt::{self as f}, io};",
             "#[allow(dead_code)] fn f() {}",
         ] {
             assert_eq!(
@@ -639,6 +666,13 @@ mod tests {
                 Vec::<String>::new(),
                 "{source}"
             );
+        }
+    }
+
+    #[test]
+    fn self_alias_at_std_root_is_rejected() {
+        for source in ["use std::{self as s};", "use std::{io, self as s};"] {
+            assert!(!check_source(source, false).is_empty(), "{source}");
         }
     }
 
