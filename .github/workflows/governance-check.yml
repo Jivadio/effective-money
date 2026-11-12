@@ -1,0 +1,69 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Fails if a required governance file is missing, or if the live `main`
+# ruleset differs from .github/rulesets/main.json.
+name: governance-check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  governance-files:
+    name: governance-files
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check required governance files exist
+        run: |
+          missing=0
+          for f in \
+            README.md LICENSE CONTRIBUTING.md SECURITY.md CHANGELOG.md \
+            .github/ISSUE_TEMPLATE/bug.yml .github/ISSUE_TEMPLATE/feature.yml \
+            .github/ISSUE_TEMPLATE/new-bank.yml .github/ISSUE_TEMPLATE/config.yml \
+            .github/PULL_REQUEST_TEMPLATE.md .github/CODEOWNERS .github/rulesets/main.json \
+            renovate.json deny.toml supply-chain/config.toml supply-chain/audits.toml \
+            crates/connectors/allowed-deps.toml \
+            .github/workflows/ci.yml .github/workflows/pr-checks.yml .github/workflows/governance-check.yml \
+            .github/workflows/release.yml \
+            release-please-config.json .release-please-manifest.json commitlint.config.cjs \
+            .coderabbit.yaml .github/workflows/codeql.yml AGENTS.md CLAUDE.md
+          do
+            if [ ! -s "$f" ]; then
+              echo "::error file=$f::missing or empty governance file: $f"
+              missing=1
+            fi
+          done
+          exit $missing
+
+  ruleset:
+    name: ruleset
+    # Never on pull_request: the admin-read token must not be exposed to PR code.
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Reading a ruleset with its bypass actors needs a token with
+    # "Administration: read" on this repository, stored as RULESETS_TOKEN.
+    env:
+      GH_TOKEN: ${{ secrets.RULESETS_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: Compare live ruleset to .github/rulesets/main.json
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::RULESETS_TOKEN is not set, live ruleset not compared. Create a fine-grained token with Administration: read on this repository and add it under Settings > Secrets and variables > Actions as RULESETS_TOKEN."
+            exit 0
+          fi
+          cargo xtask rulesets check

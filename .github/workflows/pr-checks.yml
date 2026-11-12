@@ -1,0 +1,70 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Pull-request-only checks. Job names are required status checks
+# (.github/rulesets/main.json). `edited` re-runs only these cheap jobs when the
+# PR title changes.
+name: pr-checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-checks-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  # PRs are squash-merged and the PR title becomes the commit subject, so only
+  # the title has to follow Conventional Commits (see CONTRIBUTING.md).
+  commitlint:
+    name: commitlint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # commitlint is pinned in the root package.json devDependencies.
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Lint PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: printf '%s\n' "$PR_TITLE" | pnpm exec commitlint --config commitlint.config.cjs
+
+  dco:
+    name: dco
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require Signed-off-by matching the author on every commit
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          # Set by GitHub from the PR opener's account, so it cannot be spoofed
+          # through commit metadata (unlike author names or emails).
+          PR_AUTHOR_TYPE: ${{ github.event.pull_request.user.type }}
+        run: |
+          if [ "$PR_AUTHOR_TYPE" = "Bot" ]; then
+            echo "::notice::PR opened by a bot account (GitHub App); DCO check skipped"
+            exit 0
+          fi
+          fail=0
+          for c in $(git rev-list --no-merges "$BASE..$HEAD"); do
+            email="$(git log -1 --format='%ae' "$c")"
+            if ! git log -1 --format='%(trailers:key=Signed-off-by,valueonly)' "$c" | grep -qiF "<$email>"; then
+              echo "::error::commit $c has no 'Signed-off-by: ... <$email>' trailer (use git commit -s)"
+              fail=1
+            fi
+          done
+          exit $fail
