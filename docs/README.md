@@ -3,6 +3,7 @@
 We are at the very start. Pages marked "planned" describe where we are heading, not what exists today.
 
 - [architecture.md](architecture.md) - architecture overview (coming soon)
+- [../DESIGN.md](../DESIGN.md) - the Ledger design system: tokens, components, voice and localization
 - [adr/0001-architecture-v1.md](adr/0001-architecture-v1.md) - architecture decision record for V1
 - [security-model.md](security-model.md) - secrets and threat model (planned)
 - [spikes/](spikes/) - feasibility studies for each bank (empty for now)

@@ -4,7 +4,7 @@ Guidance for AI coding agents (and humans in a hurry). Tool-agnostic; `CLAUDE.md
 
 ## Project
 
-Solde is an open-source, self-hostable personal finance app for a household: Rust core, React web app, planned Tauri desktop app and MCP server. Bank connectors (Banque Populaire, La Banque Postale, Trade Republic) and Enable Banking are planned. Status: early days (Milestone 0): workspace skeleton, `GET /healthz`, CI and governance exist; most crates are empty placeholders. Do not describe planned features as implemented.
+Solde is an open-source, self-hostable personal finance app for a household: Rust core, React web app, planned Tauri desktop app and MCP server. It is read-only: it never initiates transfers or payments. The UI ships in English, French, Italian, German and Spanish. Bank connectors (Banque Populaire, La Banque Postale, Trade Republic) and Enable Banking are planned. Status: early days (Milestone 0): workspace skeleton, `GET /healthz`, CI and governance exist; most crates are empty placeholders. Do not describe planned features as implemented.
 
 ## Repo map
 

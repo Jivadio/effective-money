@@ -27,7 +27,7 @@ body:
   - type: dropdown
     id: sca
     attributes:
-      label: How do you confirm logins and payments (2FA)?
+      label: How does your bank confirm logins (2FA)?
       options:
         - SMS OTP
         - Mobile app confirmation

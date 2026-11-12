@@ -6,7 +6,7 @@ Welcome, and thank you for being here! First time contributing to open source? Y
 
 - Report a bug or share an idea (an issue is a real contribution).
 - Build or improve a bank connector.
-- Work on the UI, accessibility or translations.
+- Work on the UI (see [DESIGN.md](DESIGN.md)), accessibility, or translations: the app ships in English, French, Italian, German and Spanish.
 - Improve the docs.
 - Test with your own bank and tell us what happens.
 - Pick up a [`good first issue`](../../labels/good%20first%20issue).

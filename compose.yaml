@@ -55,7 +55,7 @@ services:
       # The server refuses to start if this file cannot be opened. The key
       # itself is not used yet.
       SOLDE_MASTER_KEY_FILE: /run/solde-keys/master.key
-      SOLDE_DATABASE_URL: postgres://effective_money:${SOLDE_POSTGRES_PASSWORD:-change-me}@postgres:5432/effective_money
+      SOLDE_DATABASE_URL: postgres://solde:${SOLDE_POSTGRES_PASSWORD:-change-me}@postgres:5432/solde
       RUST_LOG: ${RUST_LOG:-info}
     volumes:
       - ${SOLDE_KEYS_SOURCE:-solde-keys}:/run/solde-keys:ro
@@ -69,13 +69,13 @@ services:
     # The image's entrypoint needs root capabilities to drop to the postgres user.
     security_opt: ["no-new-privileges:true"]
     environment:
-      POSTGRES_USER: effective_money
+      POSTGRES_USER: solde
       POSTGRES_PASSWORD: ${SOLDE_POSTGRES_PASSWORD:-change-me}
-      POSTGRES_DB: effective_money
+      POSTGRES_DB: solde
     volumes:
       - solde-pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U effective_money -d effective_money"]
+      test: ["CMD-SHELL", "pg_isready -U solde -d solde"]
       interval: 5s
       timeout: 5s
       retries: 10
