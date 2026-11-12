@@ -24,14 +24,17 @@ jobs:
     # the repository's GitHub App instead, so the token below needs no rights.
     permissions:
       contents: read
+    env:
+      # Both the app's client ID (variable) and private key (secret) are needed.
+      RELEASE_APP_CONFIGURED: ${{ vars.RELEASE_APP_CLIENT_ID != '' && secrets.RELEASE_APP_PRIVATE_KEY != '' }}
     steps:
       - name: Skip when the release app is not configured
-        if: vars.RELEASE_APP_CLIENT_ID == ''
-        run: echo "::notice::RELEASE_APP_CLIENT_ID is not set; skipping release-please. See docs/README.md (For maintainers)."
+        if: env.RELEASE_APP_CONFIGURED != 'true'
+        run: echo "::notice::RELEASE_APP_CLIENT_ID or RELEASE_APP_PRIVATE_KEY is not set; skipping release-please. See docs/README.md (For maintainers)."
 
       - name: Mint a GitHub App token
         id: app-token
-        if: vars.RELEASE_APP_CLIENT_ID != ''
+        if: env.RELEASE_APP_CONFIGURED == 'true'
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
           client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
@@ -43,7 +46,7 @@ jobs:
       # Release PRs opened by the app are authored by a bot account, so the
       # required checks run on them and the DCO check skips them.
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
-        if: vars.RELEASE_APP_CLIENT_ID != ''
+        if: env.RELEASE_APP_CONFIGURED == 'true'
         with:
           token: ${{ steps.app-token.outputs.token }}
           config-file: release-please-config.json
