@@ -1,8 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! Guards the shape of the fixture set: every scenario directory, and every
 //! overlay the connector tests will use, must load through
-//! [`FixtureSet`]. A malformed or duplicated-request fixture fails here
-//! rather than in the connector tests.
+//! [`FixtureSet`]. A malformed fixture fails here rather than in the connector
+//! tests.
+//!
+//! Repeating a request key is legal: [`FixtureSet`] queues the responses and
+//! serves them in file-name order, which is how a retry or a poll is modelled
+//! (see `server-error/`). These tests therefore prove loading, not uniqueness.
 
 use solde_connector_sdk::http::FixtureSet;
 

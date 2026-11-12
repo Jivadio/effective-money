@@ -40,10 +40,12 @@ carries the machine value with a dot decimal (protocol §10).
 | `pending-day2/` | Overlay on `login-ok/` + `pending-day1/`: the same payment is now booked (15/10, booked label). |
 
 `tests/fixtures_load.rs` loads every scenario on its own and every overlay a
-connector test will use, so a malformed or colliding fixture fails there
-rather than in the connector tests. It checks loading only, not behaviour:
-the behavioural tests (retry consumed, overlays applied, canary absent from
-logs) land with the connector (T5).
+connector test will use, so a malformed fixture fails there rather than in the
+connector tests. It checks loading only, not behaviour: the behavioural tests
+(retry consumed, overlays applied, canary absent from logs) land with the
+connector (T5). Repeating a request key is legal — the loader queues the
+responses in file-name order, which is exactly how `server-error/` models the
+idempotent read retry and how `challenge/` models a poll.
 
 ## Modelled, not observed (to confirm live)
 
