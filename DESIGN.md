@@ -2,7 +2,7 @@
 
 > The reference for designing and building the Solde interface. Source of truth: the tokens below. Always use the CSS variables, never hard-coded values.
 
-This is the design system for Solde, a personal finance app covering accounts, transactions, budgets and savings. The **Ledger** direction is precise, calm and legible. It has one goal: **users know where they stand within three seconds**, and feel safe with their money.
+This is the design system for Solde, a personal finance app covering accounts, transactions, budgets and savings. Solde reads your accounts; it never moves money, so there are no transfers or payments in the UI. The **Ledger** direction is precise, calm and legible. It has one goal: **users know where they stand within three seconds**, and feel safe with their money.
 
 Two themes: **Light** (default) and **Dark**. Same roles, same token names.
 
@@ -15,7 +15,7 @@ The UI ships in five languages (**EFIGS**: English, French, Italian, German, Spa
 3. **One lime.** `highlight` (#c8f04a) is Solde's identity: a healthy gauge, a goal reached, the active tab, the main chart series. In the light theme it never carries text (1.3:1 on white). It is a fill, with `on-highlight` on top.
 4. **Never colour alone.** `+€120.00` / `−€42.90` (real minus sign, U+2212), "Almost reached" spelled out, an arrow on deltas. Readable by colour-blind users and in greyscale.
 5. **Calm by default.** An ordinary expense is in `ink`, not red. `negative` means overdraft, overspending, a penalty or an error.
-6. **Visible trust.** Sync freshness is always shown, every hero amount has a discreet mode (eye), every money transfer shows `loading`, and anything irreversible asks for confirmation.
+6. **Visible trust.** Sync freshness is always shown, every hero amount has a discreet mode (eye), every action that talks to a bank (sync, reconnect) shows `loading`, and anything irreversible asks for confirmation.
 
 ## Voice
 
@@ -26,7 +26,7 @@ Short sentences, concrete numbers. Say what is happening and what to do. Write t
 | Rent of €1,100.00 due tomorrow. Your balance covers it. | Warning! Upcoming transaction on your account. |
 | Over by €22 | Budget exceeded (122%) |
 | Reconnect Banque Populaire to update your accounts. | Error 503: aggregation failed. |
-| Make a transfer | Submit |
+| Reconnect bank | Submit |
 
 ### Localization (EFIGS)
 
@@ -35,7 +35,7 @@ Short sentences, concrete numbers. Say what is happening and what to do. Write t
 - **Dates**: relative up to "Yesterday", then a short date (`Oct 28`, `28 oct.`, `28. Okt.`).
 - **Strings**: ICU message format, one key per sentence, plurals through ICU. Never concatenate translated fragments, and never put text in images.
 - **Text expansion**: German and French run about 30% longer than English. Buttons, tabs and badges must wrap or grow, never truncate a label. Test every screen in German.
-- Labels are verb + object in every language ("Make a transfer", "Faire un virement", "Überweisung tätigen").
+- Labels are verb + object in every language ("Add an account", "Ajouter un compte", "Konto hinzufügen").
 
 ## Colours
 
@@ -128,7 +128,7 @@ Family: `--font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-
 | `.title` | 24px / 30px | 600 | -0.015em | November budget | Screen title, one per screen. |
 | `.heading` | 16px / 22px | 600 | -0.005em | Recent transactions | Card or section title. |
 | `.body` | 15px / 22px | 400 | 0 | Your rent will be debited in 3 days. | Body text, main label of a row. |
-| `.label` | 13px / 18px | 500 | 0 | Make a transfer | Buttons, tabs, field labels. |
+| `.label` | 13px / 18px | 500 | 0 | Add an account | Buttons, tabs, field labels. |
 | `.caption` | 12px / 16px | 400 | 0 | Synced 2 min ago | Dates, metadata, hints, notes. |
 | `.overline` | 11px / 14px | 600 | 0.06em | TOTAL BALANCE | Capitalised over-title above a hero amount. Sparingly. |
 
@@ -286,8 +286,8 @@ Triggers an action. One `primary` button per screen or per card.
 - `variant`: `primary` (`accent` background), `secondary` (`border-strong` outline), `ghost` (tertiary actions, toolbars), `highlight` (celebrate: confirming a goal; rare), `danger` (irreversible, always followed by a confirmation).
 - `size`: `md` 44 px by default (touch target), `sm` 32 px in dense lists, `lg` 56 px for the full-width action at the bottom of the screen (`block`).
 - `icon` left of the label. An icon-only button requires `aria-label`.
-- `loading` disables the button and sets `aria-busy`. Use it during any money transfer to prevent double clicks.
-- Labels are verb + object: "Make a transfer", never "OK". The label wraps rather than truncating (German).
+- `loading` disables the button and sets `aria-busy`. Use it while a bank request runs (sync, reconnect, adding an account) to prevent double clicks.
+- Labels are verb + object: "Add an account", never "OK". The label wraps rather than truncating (German).
 
 ```ts
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -399,11 +399,11 @@ interface SegmentedControlProps {
 
 ## AmountField
 
-Entry of an amount (default) or of text (`variant="text"`).
+Entry of an amount (default) or of text (`variant="text"`): budget limits, savings goals, manual entries.
 
 - Amount: 56 px high, digits in `amount-lg` aligned right, `inputMode="decimal"`, currency in `ink-muted`.
 - Accepts the active locale's decimal and grouping separators (`1,240.50` in en, `1 240,50` in fr, `1.240,50` in de).
-- `hint` under the field (available balance). `error` replaces it, in `negative`, and says how to fix it.
+- `hint` under the field (e.g. last month's spending in that category). `error` replaces it, in `negative`, and says how to fix it.
 - The consumer owns the value (`value`/`onChange`) and the locale-aware parsing.
 
 ```ts
@@ -556,7 +556,7 @@ Reading order: where I stand (balance) → what needs my attention (alert, budge
 Structure, top to bottom, gutter `space-4`, gap `space-4`:
 
 1. Header: `title` "Hello {firstName}" + a `ghost` button with the `search` icon.
-2. `BalanceCard`: balance, delta vs the previous month, "Transfer" (primary) and "Add" (secondary) actions, sync freshness.
+2. `BalanceCard`: balance, delta vs the previous month, "Sync now" (primary) and "Add account" (secondary) actions, sync freshness.
 3. A warning `Notice` if a direct debit is due within 48 h.
 4. `Card` "November budget" + "See all" action → `BudgetGauge` for the budget closest to its limit.
 5. `Card` "Recent" + "See all" → 3 `TransactionRow`.
