@@ -6,10 +6,8 @@ transaction. Account numbers, UUIDs, balances, dates and labels are invented;
 labels are generic (`CARD PAYMENT BAKERY`) and the IBAN slot stays empty (the
 bank does not expose it on these pages).
 
-Section numbers below refer to the T1 protocol document,
-`docs/connectors/banque-postale/protocol.md`, which lands separately (PR #10).
-Until that PR is merged the sections are not resolvable from this branch —
-read each scenario's description here instead.
+Section numbers below refer to `docs/connectors/banque-postale/protocol.md`,
+merged in #10.
 
 They follow the fixture format documented in `solde_connector_sdk::http`: one
 JSON file per request, matched on method, path and query (**exact, order
@@ -18,7 +16,9 @@ included** — `normalize_query` does not reorder parameters, so keep
 file-name order (strict: running out is an error). Each directory is a
 scenario; tests load `login-ok/` and overlay another directory on top of it
 (`FixtureSet::from_dirs`). The session cookie in the entry and auth responses
-holds the test canary `CANARY-7f3a9c`: tests check it never reaches the logs.
+holds the test canary `CANARY-7f3a9c`, so the connector tests can assert it
+never reaches the logs (the check itself lives in `connector-sdk/testkit` and
+lands with the connector, T5).
 
 `cargo xtask fixtures-scrub-check` must stay green on this directory. The raw
 captures these fixtures were modelled on are kept off-repo.
@@ -32,16 +32,18 @@ carries the machine value with a dot decimal (protocol §10).
 |---|---|
 | `login-ok/` | Trusted-device login (no push): entry redirect → login form → auth POST → session. Three accounts (checking, Livret A, LEP), the checking statement with two identical `CARD PAYMENT BAKERY` rows on 13/10, a second statement page, both savings statements. |
 | `challenge/` | Untrusted-device login, approved: auth POST → notice page (`message.html?param=AuthentInfoAF`) → Continuer (`#back-link`) → waiting page carrying `PPH` and `URL_AF_POLLING` → the poll answers `200` once, then `302` to the session. Overlay on `login-ok/` for the post-login reads. |
-| `refused/` | Untrusted-device login, refused: same prelude, then the poll answers `302` to `message.html` with a non-`AuthentInfoAF` parameter → `ChallengeTimeout` (the bank gives no explicit decline signal). |
+| `refused/` | Untrusted-device login, refused: same prelude, then the poll answers `302` to `message.html` with a non-`AuthentInfoAF` parameter → `ChallengeTimeout` (the bank gives no explicit decline signal). Note the phase matters: a `message.html` seen **during authentication** (§3) is an upstream refusal (`Network`), while one seen **while polling the approval** (§4) means not-approved (`ChallengeTimeout`). |
 | `expired/` | The saved session is dead: the synthesis probe answers `302` to the login form → `SessionExpired`. |
 | `auth-failed/` | Wrong identifier or code: the auth POST re-renders the login form with an error banner (`200`) → `AuthFailed`. |
 | `server-error/` | The bank answers `502` twice on the synthesis read, so the single idempotent read retry is served too (`02-…-retry.json` carries the same request key and is served second) → `Network`. |
 | `pending-day1/` | Overlay on `login-ok/`: the checking statement carries a pending supermarket payment (`data-status="pending"`, 14/10). |
 | `pending-day2/` | Overlay on `login-ok/` + `pending-day1/`: the same payment is now booked (15/10, booked label). |
 
-No test in this crate consumes these fixtures yet: `crates/connectors/banque-postale`
-is still a placeholder, and the scenario tests land with the connector itself
-(T5).
+`tests/fixtures_load.rs` loads every scenario on its own and every overlay a
+connector test will use, so a malformed or colliding fixture fails there
+rather than in the connector tests. It checks loading only, not behaviour:
+the behavioural tests (retry consumed, overlays applied, canary absent from
+logs) land with the connector (T5).
 
 ## Modelled, not observed (to confirm live)
 
