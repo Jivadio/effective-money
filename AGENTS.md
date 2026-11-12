@@ -4,7 +4,7 @@ Guidance for AI coding agents (and humans in a hurry). Tool-agnostic; `CLAUDE.md
 
 ## Project
 
-Solde is an open-source, self-hostable personal finance app for a household: Rust core, React web app, planned Tauri desktop app and MCP server. It is read-only: it never initiates transfers or payments. The UI ships in English, French, Italian, German and Spanish. Bank connectors (Banque Populaire, La Banque Postale, Trade Republic) and Enable Banking are planned. Status: early days (Milestone 0): workspace skeleton, `GET /healthz`, CI and governance exist; most crates are empty placeholders. Do not describe planned features as implemented.
+Solde is an open-source, self-hostable personal finance app for a household: Rust core, React web app, planned Tauri desktop app and MCP server. It is read-only: it never initiates transfers or payments. The UI will ship in English, French, Italian, German and Spanish (not translated yet). Bank connectors (Banque Populaire, La Banque Postale, Trade Republic) and Enable Banking are planned. Status: early days (Milestone 0): workspace skeleton, `GET /healthz`, CI and governance exist; most crates are empty placeholders. Do not describe planned features as implemented.
 
 ## Repo map
 
@@ -68,7 +68,7 @@ Toolchain is pinned in `rust-toolchain.toml`; pnpm in the root `package.json`. C
 - Do not edit lockfiles or generated files by hand; use the tools. Do not add a dependency without saying why in the PR.
 - Do not edit the changelog by hand for releases: release-please builds it from commits.
 - Docs and comments are in English, with a welcoming tone.
-- UI: use the `DESIGN.md` tokens (never hard-coded colours or sizes). All copy comes from translation catalogues; the app ships in English, French, Italian, German and Spanish, and amounts and dates are formatted by the user's locale.
+- UI: use the `DESIGN.md` tokens (never hard-coded colours or sizes). All copy must come from translation catalogues, since the app will ship in English, French, Italian, German and Spanish, and amounts and dates are formatted by the user's locale.
 
 ## Before you finish
 

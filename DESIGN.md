@@ -39,7 +39,7 @@ Short sentences, concrete numbers. Say what is happening and what to do. Write t
 
 ## Colours
 
-- **Backgrounds**: `bg` → `surface` (cards) → `surface-sunken` (tracks, chips, hover). Use `surface-inverse` + `on-inverse` for an inverted hero card, at most one per screen.
+- **Backgrounds**: `bg` → `surface` (cards) → `surface-sunken` (tracks, chips, hover). Use `surface-inverse` + `on-inverse` (and `on-inverse-muted` for secondary text) for an inverted hero card, at most one per screen.
 - **Text**: `ink` (≥ 15:1), `ink-muted` (≥ 4.5:1 on `bg`, `surface` and `surface-sunken` in both themes), `ink-disabled` for disabled content only.
 - **Action**: `accent` / `accent-hover` / `on-accent`. In dark mode the accent inverts (off-white button, black text).
 - **Meaning**: `positive`, `negative`, `warning`, each with a `-soft` background for badges and alerts (text ≥ 4.5:1 on its background).
@@ -68,6 +68,8 @@ No logo yet: the name is set in Inter 600, `ink`.
 
 ## Components
 
+All monetary props (`amount`, `value`, `delta`, `spent`, `limit`, chart values) are integer minor units in the account's currency.
+
 `Button`, `Amount`, `Badge`, `Icon`, `Card`, `SegmentedControl`, `AmountField`, `TransactionRow`, `BalanceCard`, `BudgetGauge`, `CategoryBar`, `Notice`, `TabBar`, and the **Home** reference screen. They are React components whose styles read only the token variables. They will live in `apps/web` once the UI work starts.
 
 ## Accessibility
@@ -90,6 +92,7 @@ Themes: `light` (default) and `dark`, applied through `[data-theme="…"]` on `<
 | `--surface-sunken` | `#ebebe6` | `#0a0b0c` | Recessed areas: gauge tracks, segmented control, chips, row hover. |
 | `--surface-inverse` | `#121417` | `#f2f2ee` | Inverted hero card (balance, bank card), toast. Text on top: `on-inverse`. |
 | `--on-inverse` | `#f5f5f2` | `#121417` | Text on `surface-inverse`. |
+| `--on-inverse-muted` | `#9aa0a8` | `#5a5f66` | Secondary text on `surface-inverse`: labels, cents, sync freshness (7.0:1 light, 5.7:1 dark). Never `ink-muted` on an inverse card. |
 | `--border` | `#e3e3dc` | `#2a2d32` | Row separators and card outlines. Decorative, never the only carrier of information. |
 | `--border-strong` | `#8a8f96` | `#6b717a` | Outline of fields and secondary buttons (≥ 3:1 on `surface`). |
 | `--ink` | `#121417` | `#f2f2ee` | Main text and ordinary amounts (expenses included). |
@@ -159,7 +162,7 @@ Family: `--font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-
 
 | Token | Value | Usage |
 |---|---|---|
-| `--control-sm` | `32px` | Compact button height, segmented control. |
+| `--control-sm` | `32px` | Visible height of a compact button or segmented-control option. The interactive target still extends to 44 px (padding or an invisible hit area). |
 | `--control-md` | `44px` | Standard button and field height: minimum touch target. |
 | `--control-lg` | `56px` | Amount entry field, full-width button at the bottom of the screen. |
 | `--icon-tile` | `40px` | Category icon tile in a row. |
@@ -180,6 +183,7 @@ Family: `--font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-
   --surface-sunken: #ebebe6;
   --surface-inverse: #121417;
   --on-inverse: #f5f5f2;
+  --on-inverse-muted: #9aa0a8;
   --border: #e3e3dc;
   --border-strong: #8a8f96;
   --ink: #121417;
@@ -213,6 +217,7 @@ Family: `--font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-
   --surface-sunken: #0a0b0c;
   --surface-inverse: #f2f2ee;
   --on-inverse: #121417;
+  --on-inverse-muted: #5a5f66;
   --border: #2a2d32;
   --border-strong: #6b717a;
   --ink: #f2f2ee;
@@ -284,7 +289,7 @@ React 18. CSS class prefix: `sd-`. Styles only read the variables above. Every v
 Triggers an action. One `primary` button per screen or per card.
 
 - `variant`: `primary` (`accent` background), `secondary` (`border-strong` outline), `ghost` (tertiary actions, toolbars), `highlight` (celebrate: confirming a goal; rare), `danger` (irreversible, always followed by a confirmation).
-- `size`: `md` 44 px by default (touch target), `sm` 32 px in dense lists, `lg` 56 px for the full-width action at the bottom of the screen (`block`).
+- `size`: `md` 44 px by default (touch target), `sm` 32 px visible height in dense lists (its tap target still extends to 44 px), `lg` 56 px for the full-width action at the bottom of the screen (`block`).
 - `icon` left of the label. An icon-only button requires `aria-label`.
 - `loading` disables the button and sets `aria-busy`. Use it while a bank request runs (sync, reconnect, adding an account) to prevent double clicks.
 - Labels are verb + object: "Add an account", never "OK". The label wraps rather than truncating (German).
@@ -305,11 +310,11 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 Displays an amount formatted for the active locale, with tabular figures and a real minus sign.
 
 - `size`: `xl` hero balance (one per screen), `lg` card header, `md` rows, `sm` deltas.
-- In `xl`/`lg`, the minor units are in `ink-muted` so the eye reads the major units first. This applies wherever the locale puts the decimals.
+- In `xl`/`lg`, the minor units are in `ink-muted` (`on-inverse-muted` on an inverse card) so the eye reads the major units first. This applies wherever the locale puts the decimals.
 - `signed` shows `+` and colours values > 0 in `positive` (income, gains). An ordinary expense stays in `ink`.
 - `alertNegative` colours in `negative`: only for an overdraft, a penalty, overspending.
 - `hidden` → `••••` with the currency symbol in its locale position (discreet mode), with an `aria-label`.
-- The consumer passes a number, never a pre-formatted string. `formatAmount(value, { locale, signed, decimals, currency })` is exported for text.
+- **Money is integer minor units** everywhere, as in the backend: `value: 124035` with `currency: 'EUR'` is €1,240.35. The consumer passes that integer, never a float or a pre-formatted string. Conversion to major units happens only inside `formatAmount(value, { locale, signed, decimals, currency })`, which is also exported for text.
 
 ```ts
 interface AmountProps {
@@ -462,7 +467,7 @@ interface BalanceCardProps {
   delta?: number;
   period?: string;
   actions?: React.ReactNode;
-  syncedAt?: string;
+  syncedAt: string;
   hidden?: boolean;
   inverse?: boolean;
   style?: React.CSSProperties
@@ -542,7 +547,7 @@ interface TabBarProps {
 
 `IconName` type: `plus`, `arrow-up-right`, `arrow-down-left`, `arrow-right-left`, `chevron-right`, `check`, `alert`, `info`, `eye`, `eye-off`, `home`, `chart`, `card`, `piggy`, `cart`, `building`, `briefcase`, `train`, `bolt`, `search`, `user`, `clock`.
 
-Utility: `formatAmount(value, { locale, signed?, decimals?, currency })` → `Intl.NumberFormat(locale, { style: 'currency', currency })`, with the `-` sign replaced by `−` (U+2212), and `signDisplay: 'exceptZero'` when `signed`.
+Utility: `formatAmount(value, { locale, signed?, decimals?, currency })` takes `value` in integer minor units, divides it by 10^digits, where digits is the currency's minor-unit count (`new Intl.NumberFormat(locale, { style: 'currency', currency }).resolvedOptions().maximumFractionDigits`: 2 for EUR, 0 for JPY), then formats with `Intl.NumberFormat(locale, { style: 'currency', currency })`, with the `-` sign replaced by `−` (U+2212), and `signDisplay: 'exceptZero'` when `signed`.
 
 
 ---
