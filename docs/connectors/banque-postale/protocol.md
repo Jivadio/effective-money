@@ -43,6 +43,10 @@ still confirm against live pages or T2 fixtures are marked **[to confirm]**.
    - Follow redirects. Expect `200` with a page containing the login form
      (marker: `formAccesCompte`). Anything else is an upstream outage or a
      format change (see § 11).
+   - Redirect-following here describes the **browser** path. The SDK
+     `HttpClient` never follows redirects: for any step done over plain HTTP
+     the connector handles each `Location` hop itself and caps the chain
+     (see § 13).
 
 ## 2. Login form
 
@@ -62,11 +66,14 @@ The form carries:
 - **Anti-fraud fingerprint**: page scripts set a device fingerprint field
   (`iscdName`). A plain HTTP client cannot reproduce it (see § 5).
 
-The UI contract derived from this: the connector shows the ten digit labels
-and receives back the clicked **positions** (six integers, `0`–`9`). Labels
-and positions **together reveal the password** (the server maps positions
-back to digits with the per-load keypad): both are sensitive, never logged,
-echoed or persisted. Only the encrypted cookie session is kept.
+The keypad model: the six-digit code is a **credential**, entered once by the
+user and stored encrypted by Solde (a secret field in the connector
+manifest). At login time the connector reads the ten shuffled text labels,
+maps each digit of the stored code to its on-screen position itself, and
+submits the positions. No keypad challenge is posed to the user: the only
+`Interaction` challenge in this flow is the mobile approval (`AppValidation`).
+Labels and positions together reveal the code, so both are sensitive — never
+logged, echoed or persisted. Only the encrypted cookie session is kept.
 
 ## 3. Authentication POST
 
@@ -92,6 +99,18 @@ echoed or persisted. Only the encrypted cookie session is kept.
   - Anything else → upstream error or format change (§ 11).
 - **No login step is ever retried**: a wrong password can lock the bank
   account. Surface the failure, never replay the POST.
+- **Push guarantee.** In the observed flow the auth POST itself **never**
+  sends a push notification or SMS, on any device: the push goes out only on
+  the Continuer click (§ 4). A re-login therefore sends exactly: one entry
+  `GET`, the login-form `GET`(s), and one auth `POST` — none of which is a
+  trigger. On a trusted device that POST returns a session with no second
+  factor, which makes an OTP-free unattended re-login technically possible;
+  the SDK currently forbids credentials in `Unattended` mode, so enabling it
+  is a **maintainer decision** (opt-in capability). The absolute form of this
+  guarantee (no push from the POST on an untrusted device either) is
+  **[to confirm]** by a live measurement in T2: re-login on a trusted device
+  and watch for any push; re-login on an untrusted device, stop before
+  Continuer, and verify nothing arrives.
 
 ## 4. Strong customer authentication (mobile approval)
 
@@ -113,12 +132,16 @@ On an untrusted device the bank shows a *« Pour plus de sécurité »* notice p
    - **Variant B — HTTP polling of the polling URL (not live-validated,
      [to confirm]).** `GET` the `PPH + URL_AF_POLLING` URL every ~3 s:
      `301/302/303/307/308` → follow once; a session home page means
-     **approved**. `401/403` → the user declined or the wait expired
-     (**timeout**). `404` → format change. Other `4xx` → fail. `200/204/429`
+     **approved**. `401/403` → the wait expired or the user declined
+     (**timeout** — the bank gives no explicit decline signal); `404` → format
+     change. Other `4xx` → fail. `200/204/429`
      and `5xx` → keep waiting until the deadline, then **timeout**.
-4. A **timeout** ends the attempt; the user starts a new login. A trusted
-   device skips this entire section and lands on the session home page
-   directly.
+4. A **timeout** ends the attempt; the user starts a new login. The bank
+   exposes no explicit "user declined" signal: an approval that never comes
+   and an explicit refusal look identical, so both map to `ChallengeTimeout`
+   (a `ChallengeCancelled` is only produced by the app itself, e.g. the user
+   closing the modal). A trusted device skips this entire section and lands
+   on the session home page directly.
 
 ## 5. What requires a real browser, and why
 
@@ -158,6 +181,21 @@ continue **in pure HTTP**. The browser is never used for data reads.
 - **Reads are idempotent:** one transient failure (`502`-class or transport
   error) on a data read may be retried **once** with the same cookie jar. A
   login step is never retried (§ 3).
+- **Consequence for scheduled syncs:** sessions die after a few idle minutes,
+  so a scheduled sync will in practice always find an expired session. LBP
+  automatic sync therefore depends on the re-login question (§ 3, maintainer
+  decision). T2 should measure the actual lifetime: reuse the same session
+  after 5, 15 and 60 minutes and record when the probe starts failing.
+- **Device trust is not isolated.** The reference implementation replays the
+  whole cookie jar and never identified which cookies (or storage entries)
+  carry the "trusted device" state, nor how long it lasts. Trust appears to
+  be server-side, keyed off the jar plus the anti-fraud fingerprint — but
+  that is **[to confirm]** by diffing the jars of a trusted vs. untrusted
+  login in T2. Consequence: the browser-helper contract (fresh, disposable
+  profile per session, no cookie injection) would never be trusted and every
+  login would push; extending the helper protocol (e.g. initial cookies at
+  session creation, persisted encrypted in the Solde session) is a
+  **maintainer-side** change.
 
 ## 8. Data endpoints
 
@@ -173,12 +211,13 @@ All `GET` on the bank origin, plain HTTP with the session cookies:
 
 - `compte.numero` is a **per-session UUID** taken from the account card link
   (§ 9); it changes at every login and must never be used as an account
-  - `typeRecherche` selects the product family: `"5"` observed for checking
-    (CCP). Savings links carry other numeric values **[to confirm against T2
-    fixtures]**; route by the value found on the card link, never by guessing.
-  - History depth: the reference implementation's captures report roughly 90
-    days of operations on a checking statement page **[to confirm per product
-    in T2]**.
+  identity.
+- `typeRecherche` selects the product family: `"5"` observed for checking
+  (CCP). Savings links carry other numeric values **[to confirm against T2
+  fixtures]**; route by the value found on the card link, never by guessing.
+- History depth: the reference implementation's captures report roughly 90
+  days of operations on a checking statement page **[to confirm per product
+  in T2]**.
 
 ## 9. Accounts
 
@@ -203,9 +242,17 @@ All `GET` on the bank origin, plain HTTP with the session cookies:
   | PEL / Plan d'Épargne Logement | `Savings` | label as shown |
   | CEL / Compte Épargne Logement | `Savings` | label as shown |
 
-- **Stable identity:** `SHA-1` of the bank's **displayed account number**
-  (not the session UUID). The UUID is kept only for the statement request of
-  the current session.
+- **Stable identity:** the bank's **displayed account number**, normalized
+  (whitespace removed), is used as-is as `remote_id` (e.g. `N° 000 00000001`
+  → `00000000001`). No hash: a hash of an ~11-digit number is trivially
+  reversible, so it would add a second hash scheme (the SDK uses SHA-256)
+  for no privacy benefit. The number is stored in Solde's encrypted-at-rest
+  database and must never appear in logs or in `Broken { detail }`. The
+  session UUID is kept only for the statement request of the current session.
+- **Coverage:** this protocol covers checking accounts and the regulated
+  savings products in § 9's table. Life insurance (assurance-vie), loans and
+  cards are **explicitly out of scope for V1**: none were observed on the
+  synthesis or statement pages described here.
 - **No IBAN field was identified** on the parsed synthesis cards; the
   connector reports no IBAN rather than a guessed one **[to confirm: if a
   live page ever shows one, map it to `iban`]**.
@@ -229,15 +276,12 @@ All `GET` on the bank origin, plain HTTP with the session cookies:
 - **Currency:** the visible cell must carry an explicit euro marker (`€` or
   the word `EUR`); any other letter or currency symbol fails closed — never
   default to EUR.
-- **Identity:** rows carry no bank id. The stable id is deterministic:
-  `SHA-1(booking_date | label | amount | occurrence_index)`, where the
-  occurrence index counts identical rows from the top of the page. Legitimate
-  twins (two identical operations the same day) therefore keep distinct ids
-  and must both be preserved. **Known limit:** the page lists recent-first,
-  so a newly arrived identical row prepended above shifts the occurrence
-  index — and therefore the id — of older twins. T5 must not rely on these
-  ids alone for cross-sync dedup; reconcile over full booking days (e.g. via
-  the SDK id synthesis over complete days) **[design point for T5]**.
+- **Identity:** rows carry no bank id. Leave `remote_id` as `None` and let
+  the SDK synthesize ids (`synthesize_remote_ids`): it keys twins with an
+  occurrence index over **complete booking days**, independently of page
+  order, so a newly arrived identical row cannot shift the ids of older
+  twins. Legitimate twins (two identical operations the same day) keep
+  distinct ids and must both be preserved.
 - **No pending/booked distinction** was observed on the statement pages: every
   listed row is treated as booked. If the bank ever introduces a pending
   marker, it must be mapped to the SDK `Pending`/`Booked` status then — not
@@ -255,30 +299,26 @@ All `GET` on the bank origin, plain HTTP with the session cookies:
 | `message.html` with any `param` other than `AuthentInfoAF` and `0x132120c8` | `Network` (upstream refused the login without judging credentials) |
 | Session probe redirected to login | `SessionExpired` |
 | Challenge required but mode is `Unattended` | `ScaRequired` (send nothing) |
-| Approval wait expires / user declines | `ChallengeTimeout` / cancelled |
+| Approval wait expires, or the bank reports a refusal (`message.html`) | `ChallengeTimeout` (the bank gives no explicit decline signal; see § 4) |
+| User dismisses the challenge UI in the app | `ChallengeCancelled` (app-side only) |
 | Unrecognized markup, unknown product label, cardless synthesis page | `Broken { detail }` (no personal data in `detail`) |
 | Upstream `5xx`, transport failure, transient read failure after retry | `Network` |
 | Rate-limit response, if ever observed with a delay hint | `RateLimited { retry_after }` |
 
 ## 12. Mapping to the SDK DTOs
 
-- `RemoteAccount`: `remote_id` = stable SHA-1 (§ 9); `kind` from § 9 table
-  (subtype in `name`); `iban` = none; `currency` = `EUR`; `balance_minor` =
-  parsed balance converted to minor units.
-- `RemoteTransaction`: `remote_id` = deterministic SHA-1 (§ 10, with its
-  limitation) or the bank id if one ever appears (`None` lets the SDK
-  synthesize one); `booking_date` = row date; `value_date` = none observed;
-  `amount_minor` + `currency`; `label` = raw row text (untrusted);
-  `status` = `Booked` (§ 10).
+- `RemoteAccount`: `remote_id` = normalized displayed number (§ 9); `kind`
+  from § 9 table (subtype in `name`); `iban` = none; `currency` = `EUR`;
+  `balance_minor` = parsed balance converted to minor units.
+- `RemoteTransaction`: `remote_id` = `None` (the SDK synthesizes stable ids
+  over complete booking days, § 10); `booking_date` = row date; `value_date`
+  = none observed; `amount_minor` + `currency`; `label` = raw row text
+  (untrusted); `status` = `Booked` (§ 10).
 - `positions()`: unsupported — the bank exposes no investment positions on
   these pages (return `Unsupported`).
-- Login challenges: the mobile approval maps to `Challenge::AppValidation`.
-  The keypad needs **six** positions but `Challenge::Choice` answers a single
-  `Chosen(usize)` — **[design point for T5]**: either six sequential `Choice`
-  challenges (one per key press, options = the ten labels) or a new
-  challenge kind proposed to the maintainer (the SDK enum is
-  `#[non_exhaustive]`). Either way, labels and chosen positions are sensitive
-  (see § 2) and must never reach logs or errors. In `Unattended` mode every challenge resolves to
+- Login challenges: the mobile approval maps to `Challenge::AppValidation` —
+  the only challenge in this flow. No keypad challenge is needed (the code is
+  a stored credential, § 2). In `Unattended` mode every challenge resolves to
   « not allowed ».
 
 ## 13. Known limits
