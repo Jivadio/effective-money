@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/wsost/OstBrokerWeb/message.html",
+    "query": "param=AuthentInfoAF"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "text/html"
+    },
+    "body": "<html><head><title>Renforcement de la sécurité - La Banque Postale</title></head><body><h2>Vous allez devoir vous authentifier de façon renforcée</h2><a id=\"back-link\" href=\"loginform?TAM_OP=login&amp;phase=3b&amp;cu=attenteAF\">Continuer</a></body></html>"
+  }
+}

@@ -4,7 +4,12 @@ Hand-written, entirely fictional server responses of La Banque Postale's web
 client (`voscomptesenligne.labanquepostale.fr`). No real person, account or
 transaction. Account numbers, UUIDs, balances, dates and labels are invented;
 labels are generic (`CARD PAYMENT BAKERY`) and the IBAN slot stays empty (the
-bank does not expose it on these pages, per the protocol §9).
+bank does not expose it on these pages).
+
+Section numbers below refer to the T1 protocol document,
+`docs/connectors/banque-postale/protocol.md`, which lands separately (PR #10).
+Until that PR is merged the sections are not resolvable from this branch —
+read each scenario's description here instead.
 
 They follow the fixture format documented in `solde_connector_sdk::http`: one
 JSON file per request, matched on method, path and query (**exact, order
@@ -23,22 +28,32 @@ the thousand separator and before the euro sign, a comma decimal, and a
 `€` or `EUR` marker in the visible cell only — the `col-montant-brut` cell
 carries the machine value with a dot decimal (protocol §10).
 
-| Directory | Scenario | Protocol section |
-|---|---|---|
-| `login-ok/` | Trusted-device login (no push): entry redirect → login form → auth POST → session. Three accounts (checking, Livret A, LEP), the checking statement with two identical `CARD PAYMENT BAKERY` rows on 13/10, a second statement page, both savings statements. | §1–§3, §7–§10 |
-| `challenge/` | Untrusted-device login: auth POST → notice page (`message.html?param=AuthentInfoAF`) → Continuer (`#back-link`) → waiting page carrying `PPH` and `URL_AF_POLLING` → the poll answers `200` once, then `302` to the session (approved). Overlay on `login-ok/` for the post-login reads. | §3, §4 |
-| `expired/` | The saved session is dead: the synthesis probe answers `302` to the login form → `SessionExpired`. | §7 |
-| `auth-failed/` | Wrong identifier or code: the auth POST re-renders the login form with an error banner (`200`) → `AuthFailed`. | §3, §11 |
-| `server-error/` | The bank answers `500` twice on the synthesis read, so the single idempotent read retry is served too (`02-…-retry.json` carries the same request key and is served second) → `Network`. | §7, §11 |
-| `pending-day1/` | Overlay on `login-ok/`: the checking statement carries a pending supermarket payment (`data-status="pending"`, 14/10). | §10 |
-| `pending-day2/` | Overlay on `login-ok/` + `pending-day1/`: the same payment is now booked (15/10, booked label). | §10 |
+| Directory | Scenario |
+|---|---|
+| `login-ok/` | Trusted-device login (no push): entry redirect → login form → auth POST → session. Three accounts (checking, Livret A, LEP), the checking statement with two identical `CARD PAYMENT BAKERY` rows on 13/10, a second statement page, both savings statements. |
+| `challenge/` | Untrusted-device login, approved: auth POST → notice page (`message.html?param=AuthentInfoAF`) → Continuer (`#back-link`) → waiting page carrying `PPH` and `URL_AF_POLLING` → the poll answers `200` once, then `302` to the session. Overlay on `login-ok/` for the post-login reads. |
+| `refused/` | Untrusted-device login, refused: same prelude, then the poll answers `302` to `message.html` with a non-`AuthentInfoAF` parameter → `ChallengeTimeout` (the bank gives no explicit decline signal). |
+| `expired/` | The saved session is dead: the synthesis probe answers `302` to the login form → `SessionExpired`. |
+| `auth-failed/` | Wrong identifier or code: the auth POST re-renders the login form with an error banner (`200`) → `AuthFailed`. |
+| `server-error/` | The bank answers `502` twice on the synthesis read, so the single idempotent read retry is served too (`02-…-retry.json` carries the same request key and is served second) → `Network`. |
+| `pending-day1/` | Overlay on `login-ok/`: the checking statement carries a pending supermarket payment (`data-status="pending"`, 14/10). |
+| `pending-day2/` | Overlay on `login-ok/` + `pending-day1/`: the same payment is now booked (15/10, booked label). |
 
-## Synthetic extensions (to confirm live)
+No test in this crate consumes these fixtures yet: `crates/connectors/banque-postale`
+is still a placeholder, and the scenario tests land with the connector itself
+(T5).
 
-Three elements have no observed live equivalent yet and are modelled
-plausibly so T5 can be written and tested; each is marked `[to confirm]` in
-`docs/connectors/banque-postale/protocol.md`:
+## Modelled, not observed (to confirm live)
 
+Four elements have no observed live equivalent yet and are modelled plausibly
+so a connector can be written and tested against them. Each is marked
+`[to confirm]` in the protocol document.
+
+- **`challenge/` and `refused/` exercise the HTTP-summary polling path**
+  (variant B of protocol §4), which is not live-validated; the live-validated
+  path watches the browser page URL instead. Both directories are written so
+  the same assertions hold either way: a session page means approved, a
+  `message.html` page means not approved.
 - `data-status="pending"` (`pending-day1/`): no pending/booked distinction was
   observed on the statement pages. If the bank never marks pending rows, the
   connector treats every row as booked and this overlay is unused.

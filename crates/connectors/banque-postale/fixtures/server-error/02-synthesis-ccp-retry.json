@@ -4,7 +4,7 @@
     "path": "/voscomptes/canalXHTML/comptesCommun/synthese_ccp/afficheSyntheseCCP-synthese_ccp.ea"
   },
   "response": {
-    "status": 500,
+    "status": 502,
     "headers": {
       "content-type": "text/html"
     },
