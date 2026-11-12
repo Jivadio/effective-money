@@ -68,7 +68,7 @@ No logo yet: the name is set in Inter 600, `ink`.
 
 ## Components
 
-All monetary props (`amount`, `value`, `delta`, `spent`, `limit`, chart values) are integer minor units in the account's currency.
+All monetary props (`amount`, `value`, `delta`, `spent`, `limit`, chart values) are integer minor units. Every component that shows money takes a required `currency` prop (ISO 4217 code, e.g. `'EUR'`) from the account it belongs to; the formatter needs it for both the symbol and the minor-unit scale.
 
 `Button`, `Amount`, `Badge`, `Icon`, `Card`, `SegmentedControl`, `AmountField`, `TransactionRow`, `BalanceCard`, `BudgetGauge`, `CategoryBar`, `Notice`, `TabBar`, and the **Home** reference screen. They are React components whose styles read only the token variables. They will live in `apps/web` once the UI work starts.
 
@@ -318,13 +318,13 @@ Displays an amount formatted for the active locale, with tabular figures and a r
 
 ```ts
 interface AmountProps {
-  value: number;
+  value: number;           // integer minor units
   size?: 'xl'|'lg'|'md'|'sm';
   signed?: boolean;
   tone?: 'auto'|'neutral'|'positive'|'negative';
   alertNegative?: boolean;
   hidden?: boolean;
-  currency?: string;
+  currency: string;
   decimals?: number;
   className?: string
 }
@@ -439,7 +439,8 @@ One transaction in a list: icon tile, label, metadata, amount aligned right.
 ```ts
 interface TransactionRowProps {
   label: string;
-  amount: number;
+  amount: number;          // integer minor units
+  currency: string;
   icon?: IconName;
   meta?: string;
   category?: string;
@@ -462,7 +463,8 @@ The home hero card: over-title, `xl` balance, signed delta, actions, sync freshn
 
 ```ts
 interface BalanceCardProps {
-  amount: number;
+  amount: number;          // integer minor units
+  currency: string;
   label?: string;
   delta?: number;
   period?: string;
@@ -486,7 +488,8 @@ Progress of a category budget, with its state in words.
 ```ts
 interface BudgetGaugeProps {
   label: string;
-  spent: number;
+  spent: number;           // integer minor units
+  currency: string;
   limit: number;
   icon?: IconName;
   warnAt?: number;
@@ -505,7 +508,8 @@ Spending breakdown as a stacked bar + legend with values, preferred over a pie c
 
 ```ts
 interface CategoryBarProps {
-  items: Array<{ label: string; value: number; color?: 1|2|3|4|5 }>;
+  items: Array<{ label: string; value: number; color?: 1|2|3|4|5 }>; // value: integer minor units
+  currency: string;
   style?: React.CSSProperties
 }
 ```
@@ -547,7 +551,7 @@ interface TabBarProps {
 
 `IconName` type: `plus`, `arrow-up-right`, `arrow-down-left`, `arrow-right-left`, `chevron-right`, `check`, `alert`, `info`, `eye`, `eye-off`, `home`, `chart`, `card`, `piggy`, `cart`, `building`, `briefcase`, `train`, `bolt`, `search`, `user`, `clock`.
 
-Utility: `formatAmount(value, { locale, signed?, decimals?, currency })` takes `value` in integer minor units, divides it by 10^digits, where digits is the currency's minor-unit count (`new Intl.NumberFormat(locale, { style: 'currency', currency }).resolvedOptions().maximumFractionDigits`: 2 for EUR, 0 for JPY), then formats with `Intl.NumberFormat(locale, { style: 'currency', currency })`, with the `-` sign replaced by `−` (U+2212), and `signDisplay: 'exceptZero'` when `signed`.
+Utility: `formatAmount(value, { locale, signed?, decimals?, currency })` takes `value` in integer minor units, divides it by 10^digits, where digits is the currency's minor-unit count (`new Intl.NumberFormat(locale, { style: 'currency', currency }).resolvedOptions().maximumFractionDigits`: 2 for EUR, 0 for JPY), then formats with `Intl.NumberFormat(locale, { style: 'currency', currency })`. `decimals` only changes how many fraction digits are *displayed* (it sets both `minimumFractionDigits` and `maximumFractionDigits`, e.g. `decimals: 0` for "Over by €22"); the conversion from minor units always uses the currency's own scale. The formatter also replaces the `-` sign with `−` (U+2212) and uses `signDisplay: 'exceptZero'` when `signed`.
 
 
 ---
