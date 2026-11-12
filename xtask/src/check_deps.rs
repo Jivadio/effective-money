@@ -20,83 +20,86 @@ use anyhow::Context as _;
 use cargo_metadata::{CargoOpt, DependencyKind, MetadataCommand};
 use serde::Deserialize;
 
-const CONNECTOR_PREFIX: &str = "em-connector-";
+const CONNECTOR_PREFIX: &str = "solde-connector-";
 
 /// Direct workspace dependencies each workspace crate may declare.
 const ALLOWED_EDGES: &[(&str, &[&str])] = &[
-    ("em-core-domain", &[]),
-    ("em-storage", &["em-core-domain"]),
-    ("em-categorization", &["em-core-domain"]),
-    ("em-analytics", &["em-core-domain"]),
-    ("em-pricing", &["em-core-domain"]),
-    ("em-secrets", &[]),
+    ("solde-core-domain", &[]),
+    ("solde-storage", &["solde-core-domain"]),
+    ("solde-categorization", &["solde-core-domain"]),
+    ("solde-analytics", &["solde-core-domain"]),
+    ("solde-pricing", &["solde-core-domain"]),
+    ("solde-secrets", &[]),
     (
-        "em-services",
+        "solde-services",
         &[
-            "em-core-domain",
-            "em-storage",
-            "em-categorization",
-            "em-analytics",
-            "em-pricing",
+            "solde-core-domain",
+            "solde-storage",
+            "solde-categorization",
+            "solde-analytics",
+            "solde-pricing",
         ],
     ),
-    ("em-sync-facade", &["em-services", "em-core-domain"]),
     (
-        "em-api",
-        &["em-sync-facade", "em-services", "em-core-domain"],
+        "solde-sync-facade",
+        &["solde-services", "solde-core-domain"],
     ),
     (
-        "em-mcp",
-        &["em-sync-facade", "em-services", "em-core-domain"],
+        "solde-api",
+        &["solde-sync-facade", "solde-services", "solde-core-domain"],
     ),
     (
-        "em-sync",
+        "solde-mcp",
+        &["solde-sync-facade", "solde-services", "solde-core-domain"],
+    ),
+    (
+        "solde-sync",
         &[
-            "em-sync-facade",
-            "em-services",
-            "em-secrets",
-            "em-connector-registry",
-            "em-connector-sdk",
-            "em-pricing",
-            "em-core-domain",
+            "solde-sync-facade",
+            "solde-services",
+            "solde-secrets",
+            "solde-connector-registry",
+            "solde-connector-sdk",
+            "solde-pricing",
+            "solde-core-domain",
         ],
     ),
-    ("em-connector-sdk", &[]),
+    ("solde-connector-sdk", &[]),
     (
-        "em-connector-registry",
+        "solde-connector-registry",
         &[
-            "em-connector-sdk",
-            "em-connector-fake-bank",
-            "em-connector-enable-banking",
-            "em-connector-trade-republic",
-            "em-connector-banque-populaire",
-            "em-connector-banque-postale",
+            "solde-connector-sdk",
+            "solde-connector-fake-bank",
+            "solde-connector-enable-banking",
+            "solde-connector-trade-republic",
+            "solde-connector-banque-populaire",
+            "solde-connector-banque-postale",
         ],
     ),
-    ("em-connector-fake-bank", &["em-connector-sdk"]),
-    ("em-connector-enable-banking", &["em-connector-sdk"]),
-    ("em-connector-trade-republic", &["em-connector-sdk"]),
-    ("em-connector-banque-populaire", &["em-connector-sdk"]),
-    ("em-connector-banque-postale", &["em-connector-sdk"]),
-    ("em-server", &["em-api", "em-mcp", "em-sync"]),
+    ("solde-connector-fake-bank", &["solde-connector-sdk"]),
+    ("solde-connector-enable-banking", &["solde-connector-sdk"]),
+    ("solde-connector-trade-republic", &["solde-connector-sdk"]),
+    ("solde-connector-banque-populaire", &["solde-connector-sdk"]),
+    ("solde-connector-banque-postale", &["solde-connector-sdk"]),
+    ("solde-server", &["solde-api", "solde-mcp", "solde-sync"]),
     ("xtask", &[]),
 ];
 
 /// `(from, to)`: `from` must never reach `to`, even transitively.
-/// `"<connectors>"` stands for every `em-connector-*` crate.
+/// `"<connectors>"` stands for every `solde-connector-*` crate.
 const FORBIDDEN: &[(&[&str], &[&str])] = &[
     (
         &[
-            "em-api",
-            "em-mcp",
-            "em-services",
-            "em-pricing",
-            "em-analytics",
+            "solde-api",
+            "solde-mcp",
+            "solde-services",
+            "solde-pricing",
+            "solde-analytics",
         ],
-        &["em-secrets"],
+        &["solde-secrets"],
     ),
-    (&["em-api", "em-mcp"], &["em-sync"]),
-    (&["<connectors>"], &["em-core-domain", "em-storage"]),
+    (&["solde-api", "solde-mcp"], &["solde-sync"]),
+    (&["<connectors>"], &["solde-core-domain", "solde-storage"]),
 ];
 
 /// A dependency graph keyed by package name.
@@ -321,7 +324,7 @@ mod tests {
                 g.add_edge(from, to, false);
             }
         }
-        g.add_edge("em-server", "tokio", false);
+        g.add_edge("solde-server", "tokio", false);
         g
     }
 
@@ -343,16 +346,16 @@ mod tests {
     #[test]
     fn api_to_secrets_fails() {
         let mut g = reference_graph();
-        g.add_edge("em-api", "em-secrets", false);
+        g.add_edge("solde-api", "solde-secrets", false);
         let v = check(&g, &BTreeSet::new());
         assert!(
             v.iter()
-                .any(|m| m.starts_with("em-api ->* em-secrets: forbidden")),
+                .any(|m| m.starts_with("solde-api ->* solde-secrets: forbidden")),
             "{v:?}"
         );
         assert!(
             v.iter()
-                .any(|m| m.starts_with("em-api -> em-secrets: direct")),
+                .any(|m| m.starts_with("solde-api -> solde-secrets: direct")),
             "{v:?}"
         );
     }
@@ -360,10 +363,11 @@ mod tests {
     #[test]
     fn api_to_secrets_as_dev_dependency_fails() {
         let mut g = reference_graph();
-        g.add_edge("em-api", "em-secrets", true);
+        g.add_edge("solde-api", "solde-secrets", true);
         let v = check(&g, &BTreeSet::new());
         assert!(
-            v.iter().any(|m| m.starts_with("em-api ->* em-secrets")),
+            v.iter()
+                .any(|m| m.starts_with("solde-api ->* solde-secrets")),
             "{v:?}"
         );
     }
@@ -373,12 +377,12 @@ mod tests {
         // storage -> secrets is not a direct api edge, but api reaches it through
         // sync-facade -> services -> storage.
         let mut g = reference_graph();
-        g.add_edge("em-storage", "em-secrets", false);
+        g.add_edge("solde-storage", "solde-secrets", false);
         let v = check(&g, &BTreeSet::new());
-        for from in ["em-api", "em-mcp", "em-services"] {
+        for from in ["solde-api", "solde-mcp", "solde-services"] {
             assert!(
                 v.iter()
-                    .any(|m| m.starts_with(&format!("{from} ->* em-secrets"))),
+                    .any(|m| m.starts_with(&format!("{from} ->* solde-secrets"))),
                 "{from}: {v:?}"
             );
         }
@@ -387,11 +391,12 @@ mod tests {
     #[test]
     fn transitive_through_external_crate_is_caught() {
         let mut g = reference_graph();
-        g.add_edge("em-pricing", "some-ext", false);
-        g.add_edge("some-ext", "em-secrets", false);
+        g.add_edge("solde-pricing", "some-ext", false);
+        g.add_edge("some-ext", "solde-secrets", false);
         let v = check(&g, &BTreeSet::new());
         assert!(
-            v.iter().any(|m| m.starts_with("em-pricing ->* em-secrets")),
+            v.iter()
+                .any(|m| m.starts_with("solde-pricing ->* solde-secrets")),
             "{v:?}"
         );
     }
@@ -399,10 +404,10 @@ mod tests {
     #[test]
     fn api_to_sync_fails() {
         let mut g = reference_graph();
-        g.add_edge("em-mcp", "em-sync", false);
+        g.add_edge("solde-mcp", "solde-sync", false);
         let v = check(&g, &BTreeSet::new());
         assert!(
-            v.iter().any(|m| m.starts_with("em-mcp ->* em-sync:")),
+            v.iter().any(|m| m.starts_with("solde-mcp ->* solde-sync:")),
             "{v:?}"
         );
     }
@@ -410,17 +415,18 @@ mod tests {
     #[test]
     fn connector_rules() {
         let mut g = reference_graph();
-        g.add_edge("em-connector-fake-bank", "em-core-domain", false);
-        g.add_edge("em-connector-sdk", "reqwest", false);
+        g.add_edge("solde-connector-fake-bank", "solde-core-domain", false);
+        g.add_edge("solde-connector-sdk", "reqwest", false);
         let v = check(&g, &BTreeSet::new());
         assert!(
-            v.iter()
-                .any(|m| m.starts_with("em-connector-fake-bank ->* em-core-domain: forbidden")),
+            v.iter().any(
+                |m| m.starts_with("solde-connector-fake-bank ->* solde-core-domain: forbidden")
+            ),
             "{v:?}"
         );
         assert!(
             v.iter()
-                .any(|m| m.starts_with("em-connector-sdk ->* reqwest: not allowed")),
+                .any(|m| m.starts_with("solde-connector-sdk ->* reqwest: not allowed")),
             "{v:?}"
         );
         // Allow-listing the external crate clears the connector rule for it.
@@ -430,21 +436,21 @@ mod tests {
 
     #[test]
     fn optional_dependency_behind_feature_fails() {
-        // A throwaway workspace where em-api reaches em-secrets only through an
+        // A throwaway workspace where solde-api reaches solde-secrets only through an
         // optional dependency enabled by a non-default feature.
         let root =
-            std::env::temp_dir().join(format!("em-check-deps-feature-{}", std::process::id()));
+            std::env::temp_dir().join(format!("solde-check-deps-feature-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&root);
         for (dir, manifest) in [
             (
                 "secrets",
-                "[package]\nname = \"em-secrets\"\nversion = \"0.0.0\"\nedition = \"2024\"\n",
+                "[package]\nname = \"solde-secrets\"\nversion = \"0.0.0\"\nedition = \"2024\"\n",
             ),
             (
                 "api",
-                "[package]\nname = \"em-api\"\nversion = \"0.0.0\"\nedition = \"2024\"\n\n\
-                 [dependencies]\nem-secrets = { path = \"../secrets\", optional = true }\n\n\
-                 [features]\ndefault = []\nleak = [\"dep:em-secrets\"]\n",
+                "[package]\nname = \"solde-api\"\nversion = \"0.0.0\"\nedition = \"2024\"\n\n\
+                 [dependencies]\nsolde-secrets = { path = \"../secrets\", optional = true }\n\n\
+                 [features]\ndefault = []\nleak = [\"dep:solde-secrets\"]\n",
             ),
         ] {
             std::fs::create_dir_all(root.join(dir).join("src")).unwrap();
@@ -462,7 +468,7 @@ mod tests {
         std::fs::remove_dir_all(&root).unwrap();
         assert!(
             v.iter()
-                .any(|m| m.starts_with("em-api ->* em-secrets: forbidden")),
+                .any(|m| m.starts_with("solde-api ->* solde-secrets: forbidden")),
             "{v:?}"
         );
     }
@@ -470,10 +476,10 @@ mod tests {
     #[test]
     fn undeclared_crate_fails() {
         let mut g = reference_graph();
-        g.members.insert("em-new".to_owned());
+        g.members.insert("solde-new".to_owned());
         let v = check(&g, &BTreeSet::new());
         assert!(
-            v.iter().any(|m| m.starts_with("em-new: not declared")),
+            v.iter().any(|m| m.starts_with("solde-new: not declared")),
             "{v:?}"
         );
     }

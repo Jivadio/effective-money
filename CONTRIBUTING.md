@@ -1,4 +1,4 @@
-# Contributing to effective-money
+# Contributing to Solde
 
 Welcome, and thank you for being here! First time contributing to open source? You're especially welcome. Nobody expects perfection, and we'll help you get your change over the line.
 
@@ -6,7 +6,7 @@ Welcome, and thank you for being here! First time contributing to open source? Y
 
 - Report a bug or share an idea (an issue is a real contribution).
 - Build or improve a bank connector.
-- Work on the UI, accessibility or translations.
+- Work on the UI (see [DESIGN.md](DESIGN.md)), accessibility, or translations: the app ships in English, French, Italian, German and Spanish.
 - Improve the docs.
 - Test with your own bank and tell us what happens.
 - Pick up a [`good first issue`](../../labels/good%20first%20issue).
@@ -16,11 +16,11 @@ A tiny PR, a typo fix or a half-formed question is perfectly fine. Not sure wher
 ## Quickstart
 
 ```sh
-git clone https://github.com/Jivadio/effective-money.git
-cd effective-money
+git clone https://github.com/Jivadio/solde.git
+cd solde
 pnpm install              # web dependencies
 cargo test                # Rust tests
-cargo run -p em-server    # serves on http://localhost:8080, try /healthz
+cargo run -p solde-server    # serves on http://localhost:8080, try /healthz
 pnpm web:dev              # web UI dev server
 ```
 

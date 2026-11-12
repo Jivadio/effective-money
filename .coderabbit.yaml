@@ -39,7 +39,7 @@ reviews:
         Check that no interactive 2FA/SCA request is possible in a non-interactive job (scheduled or MCP-triggered), and that returned errors do not reveal another household member's private accounts.
     - path: "apps/web/**"
       instructions: |
-        Check accessibility (labels, keyboard use, contrast), that no token or secret is stored in localStorage/sessionStorage, and that TypeScript stays strict (no unjustified `any`).
+        Check accessibility (labels, keyboard use, contrast), that no token or secret is stored in localStorage/sessionStorage, and that TypeScript stays strict (no unjustified `any`). Check the UI follows DESIGN.md: only CSS token variables (no hard-coded colours, sizes or shadows), colour never the only carrier of meaning, no hard-coded user-facing strings (all copy is translated for English, French, Italian, German and Spanish), and amounts and dates formatted with Intl for the active locale.
   tools:
     gitleaks:
       enabled: true

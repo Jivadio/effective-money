@@ -121,156 +121,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
 
 [[package]]
-name = "em-analytics"
-version = "0.0.0"
-dependencies = [
- "em-core-domain",
-]
-
-[[package]]
-name = "em-api"
-version = "0.0.0"
-dependencies = [
- "em-services",
- "em-sync-facade",
-]
-
-[[package]]
-name = "em-categorization"
-version = "0.0.0"
-dependencies = [
- "em-core-domain",
-]
-
-[[package]]
-name = "em-connector-banque-populaire"
-version = "0.0.0"
-dependencies = [
- "em-connector-sdk",
-]
-
-[[package]]
-name = "em-connector-banque-postale"
-version = "0.0.0"
-dependencies = [
- "em-connector-sdk",
-]
-
-[[package]]
-name = "em-connector-enable-banking"
-version = "0.0.0"
-dependencies = [
- "em-connector-sdk",
-]
-
-[[package]]
-name = "em-connector-fake-bank"
-version = "0.0.0"
-dependencies = [
- "em-connector-sdk",
-]
-
-[[package]]
-name = "em-connector-registry"
-version = "0.0.0"
-dependencies = [
- "em-connector-banque-populaire",
- "em-connector-banque-postale",
- "em-connector-enable-banking",
- "em-connector-fake-bank",
- "em-connector-sdk",
- "em-connector-trade-republic",
-]
-
-[[package]]
-name = "em-connector-sdk"
-version = "0.0.0"
-
-[[package]]
-name = "em-connector-trade-republic"
-version = "0.0.0"
-dependencies = [
- "em-connector-sdk",
-]
-
-[[package]]
-name = "em-core-domain"
-version = "0.0.0"
-
-[[package]]
-name = "em-mcp"
-version = "0.0.0"
-dependencies = [
- "em-services",
- "em-sync-facade",
-]
-
-[[package]]
-name = "em-pricing"
-version = "0.0.0"
-dependencies = [
- "em-core-domain",
-]
-
-[[package]]
-name = "em-secrets"
-version = "0.0.0"
-
-[[package]]
-name = "em-server"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "axum",
- "em-api",
- "em-mcp",
- "em-sync",
- "http-body-util",
- "serde",
- "serde_json",
- "tokio",
- "tower",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "em-services"
-version = "0.0.0"
-dependencies = [
- "em-analytics",
- "em-categorization",
- "em-core-domain",
- "em-pricing",
- "em-storage",
-]
-
-[[package]]
-name = "em-storage"
-version = "0.0.0"
-dependencies = [
- "em-core-domain",
-]
-
-[[package]]
-name = "em-sync"
-version = "0.0.0"
-dependencies = [
- "em-connector-registry",
- "em-pricing",
- "em-secrets",
- "em-services",
- "em-sync-facade",
-]
-
-[[package]]
-name = "em-sync-facade"
-version = "0.0.0"
-dependencies = [
- "em-services",
-]
-
-[[package]]
 name = "equivalent"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -668,6 +518,156 @@ checksum = "c3d1e2c7f27f8d4cb10542a02c49005dbd6e93095799d6f3be745fae9f8fedd4"
 dependencies = [
  "libc",
  "windows-sys",
+]
+
+[[package]]
+name = "solde-analytics"
+version = "0.0.0"
+dependencies = [
+ "solde-core-domain",
+]
+
+[[package]]
+name = "solde-api"
+version = "0.0.0"
+dependencies = [
+ "solde-services",
+ "solde-sync-facade",
+]
+
+[[package]]
+name = "solde-categorization"
+version = "0.0.0"
+dependencies = [
+ "solde-core-domain",
+]
+
+[[package]]
+name = "solde-connector-banque-populaire"
+version = "0.0.0"
+dependencies = [
+ "solde-connector-sdk",
+]
+
+[[package]]
+name = "solde-connector-banque-postale"
+version = "0.0.0"
+dependencies = [
+ "solde-connector-sdk",
+]
+
+[[package]]
+name = "solde-connector-enable-banking"
+version = "0.0.0"
+dependencies = [
+ "solde-connector-sdk",
+]
+
+[[package]]
+name = "solde-connector-fake-bank"
+version = "0.0.0"
+dependencies = [
+ "solde-connector-sdk",
+]
+
+[[package]]
+name = "solde-connector-registry"
+version = "0.0.0"
+dependencies = [
+ "solde-connector-banque-populaire",
+ "solde-connector-banque-postale",
+ "solde-connector-enable-banking",
+ "solde-connector-fake-bank",
+ "solde-connector-sdk",
+ "solde-connector-trade-republic",
+]
+
+[[package]]
+name = "solde-connector-sdk"
+version = "0.0.0"
+
+[[package]]
+name = "solde-connector-trade-republic"
+version = "0.0.0"
+dependencies = [
+ "solde-connector-sdk",
+]
+
+[[package]]
+name = "solde-core-domain"
+version = "0.0.0"
+
+[[package]]
+name = "solde-mcp"
+version = "0.0.0"
+dependencies = [
+ "solde-services",
+ "solde-sync-facade",
+]
+
+[[package]]
+name = "solde-pricing"
+version = "0.0.0"
+dependencies = [
+ "solde-core-domain",
+]
+
+[[package]]
+name = "solde-secrets"
+version = "0.0.0"
+
+[[package]]
+name = "solde-server"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "http-body-util",
+ "serde",
+ "serde_json",
+ "solde-api",
+ "solde-mcp",
+ "solde-sync",
+ "tokio",
+ "tower",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "solde-services"
+version = "0.0.0"
+dependencies = [
+ "solde-analytics",
+ "solde-categorization",
+ "solde-core-domain",
+ "solde-pricing",
+ "solde-storage",
+]
+
+[[package]]
+name = "solde-storage"
+version = "0.0.0"
+dependencies = [
+ "solde-core-domain",
+]
+
+[[package]]
+name = "solde-sync"
+version = "0.0.0"
+dependencies = [
+ "solde-connector-registry",
+ "solde-pricing",
+ "solde-secrets",
+ "solde-services",
+ "solde-sync-facade",
+]
+
+[[package]]
+name = "solde-sync-facade"
+version = "0.0.0"
+dependencies = [
+ "solde-services",
 ]
 
 [[package]]

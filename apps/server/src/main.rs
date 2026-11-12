@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-//! effective-money server binary.
+//! Solde server binary.
 
 use std::net::SocketAddr;
 
@@ -7,24 +7,24 @@ use anyhow::Context as _;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    em_server::init_tracing();
-    em_server::install_panic_hook();
+    solde_server::init_tracing();
+    solde_server::install_panic_hook();
 
-    if let Some(path) = em_server::check_master_key_file()? {
+    if let Some(path) = solde_server::check_master_key_file()? {
         tracing::info!(path = %path.display(), "master key file present (not used yet)");
     }
 
-    let addr: SocketAddr = std::env::var("EM_LISTEN_ADDR")
+    let addr: SocketAddr = std::env::var("SOLDE_LISTEN_ADDR")
         .unwrap_or_else(|_| "0.0.0.0:8080".to_owned())
         .parse()
-        .context("EM_LISTEN_ADDR must be a socket address, e.g. 0.0.0.0:8080")?;
+        .context("SOLDE_LISTEN_ADDR must be a socket address, e.g. 0.0.0.0:8080")?;
 
     let listener = tokio::net::TcpListener::bind(addr)
         .await
         .with_context(|| format!("cannot bind {addr}"))?;
-    tracing::info!(%addr, version = em_server::VERSION, "listening");
+    tracing::info!(%addr, version = solde_server::VERSION, "listening");
 
-    axum::serve(listener, em_server::app())
+    axum::serve(listener, solde_server::app())
         .with_graceful_shutdown(shutdown_signal())
         .await
         .context("server error")?;

@@ -1,5 +1,5 @@
 [package]
-name = "em-server"
+name = "solde-server"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -8,7 +8,7 @@ repository.workspace = true
 publish = false
 
 [[bin]]
-name = "em-server"
+name = "solde-server"
 path = "src/main.rs"
 
 [dependencies]
@@ -20,9 +20,9 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 # Wiring only: the server binary links the API, MCP and sync layers
 # (see AGENTS.md, Architecture rules).
-em-api = { path = "../../crates/api" }
-em-mcp = { path = "../../crates/mcp" }
-em-sync = { path = "../../crates/sync" }
+solde-api = { path = "../../crates/api" }
+solde-mcp = { path = "../../crates/mcp" }
+solde-sync = { path = "../../crates/sync" }
 
 [dev-dependencies]
 http-body-util.workspace = true

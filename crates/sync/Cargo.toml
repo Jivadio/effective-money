@@ -1,5 +1,5 @@
 [package]
-name = "em-sync"
+name = "solde-sync"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -8,11 +8,11 @@ repository.workspace = true
 publish = false
 
 [dependencies]
-em-sync-facade = { path = "../sync-facade" }
-em-services = { path = "../services" }
-em-secrets = { path = "../secrets" }
-em-connector-registry = { path = "../connectors/registry" }
-em-pricing = { path = "../pricing" }
+solde-sync-facade = { path = "../sync-facade" }
+solde-services = { path = "../services" }
+solde-secrets = { path = "../secrets" }
+solde-connector-registry = { path = "../connectors/registry" }
+solde-pricing = { path = "../pricing" }
 
 [lints]
 workspace = true

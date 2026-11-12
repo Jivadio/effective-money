@@ -1,6 +1,8 @@
-# effective-money
+# Solde
 
 **Take back control of your finances.** A self-hosted personal finance app for your household: accounts, budgets, net worth and investments, all on your own machine, with an MCP server so your AI assistant can help too. Your data stays with you.
+
+Solde **reads** your accounts and never moves money: no transfers, no payments. Its job is to show you, in three seconds, where you stand.
 
 > **Early days, come build it with us!** The project has just started: the repository skeleton and CI are in place, and the features below are plans, not things you can use yet. Please don't point it at real bank credentials for now.
 
@@ -13,6 +15,8 @@
 - Aggregates accounts from your banks, with the connection method chosen by you for each bank.
 - Budgets and rule-based categorisation, net worth history, positions, TWR and IRR.
 - Self-hosted first: `docker compose up`, plus a desktop app. Your data stays yours.
+- Read-only by design: Solde never initiates transfers or payments.
+- A calm, legible interface in English, French, Italian, German and Spanish, with light and dark themes (see [DESIGN.md](DESIGN.md)).
 - Bank credentials will be encrypted and kept away from the API and MCP layers by design (see [docs/security-model.md](docs/security-model.md)).
 
 ## Planned features (not built yet)
@@ -25,6 +29,7 @@
 - MCP server with scoped tokens (read-only presets, audit log).
 - Desktop app (Tauri): remote client mode, or local mode with SQLite and the same connectors.
 - PostgreSQL or SQLite backend.
+- Web and desktop UI in five languages (English, French, Italian, German, Spanish), amounts and dates in your locale.
 
 ## Bank support matrix
 
@@ -38,7 +43,7 @@ You choose, per bank, whether to use the direct connector or Enable Banking. The
 
 ## Architecture overview
 
-Modular Rust monolith serving a REST API (`/api/v1`) and MCP from one binary, a React SPA reused by the Tauri desktop app. Decisions are recorded in [docs/adr/0001-architecture-v1.md](docs/adr/0001-architecture-v1.md).
+Modular Rust monolith (`solde-server`) serving a REST API (`/api/v1`) and MCP from one binary, a React SPA reused by the Tauri desktop app. The UI follows the Ledger design system in [DESIGN.md](DESIGN.md). Decisions are recorded in [docs/adr/0001-architecture-v1.md](docs/adr/0001-architecture-v1.md).
 
 Crate dependency rules (simplified: a few extra edges to `core-domain` and `connector-sdk` are allowed). They are enforced in CI by `cargo xtask check-deps`:
 
@@ -86,4 +91,4 @@ Direct connectors use private, undocumented bank APIs. We are not affiliated wit
 
 ## Come and help!
 
-Whether you write Rust or TypeScript, own a bank account we should support, can improve the docs, or just have an idea: you're very welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md); a small issue or PR is a great start. Found a security problem? See [SECURITY.md](SECURITY.md).
+Whether you write Rust or TypeScript, own a bank account we should support, can improve the docs, or just have an idea: you're very welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md) (and [DESIGN.md](DESIGN.md) for anything visual); a small issue or PR is a great start. Found a security problem? See [SECURITY.md](SECURITY.md).

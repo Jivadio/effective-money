@@ -1,5 +1,5 @@
 [package]
-name = "em-services"
+name = "solde-services"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -8,11 +8,11 @@ repository.workspace = true
 publish = false
 
 [dependencies]
-em-core-domain = { path = "../core-domain" }
-em-storage = { path = "../storage" }
-em-categorization = { path = "../categorization" }
-em-analytics = { path = "../analytics" }
-em-pricing = { path = "../pricing" }
+solde-core-domain = { path = "../core-domain" }
+solde-storage = { path = "../storage" }
+solde-categorization = { path = "../categorization" }
+solde-analytics = { path = "../analytics" }
+solde-pricing = { path = "../pricing" }
 
 [lints]
 workspace = true

@@ -28,7 +28,7 @@ version = "0.0.0"
 edition = "2024"
 rust-version = "1.97"
 license = "AGPL-3.0-or-later"
-repository = "https://github.com/Jivadio/effective-money"
+repository = "https://github.com/Jivadio/solde"
 
 [workspace.dependencies]
 anyhow = "1"

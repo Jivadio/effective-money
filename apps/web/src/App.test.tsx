@@ -16,7 +16,7 @@ it('renders the app name and server status', async () => {
   );
   render(<App />);
   expect(
-    screen.getByRole('heading', { name: 'effective-money' }),
+    screen.getByRole('heading', { name: 'Solde' }),
   ).toBeInTheDocument();
   expect(await screen.findByText('Server ok (v1.2.3)')).toBeInTheDocument();
 });

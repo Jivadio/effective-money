@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-//! effective-money server: wires the API, MCP and sync layers into one binary.
+//! Solde server: wires the API, MCP and sync layers into one binary.
 //!
 //! For now it only exposes `GET /healthz`.
 
@@ -11,9 +11,9 @@ use serde::Serialize;
 
 // Linked now so the dependency rules apply to the real binary; used once the
 // API, MCP and sync layers have content.
-use em_api as _;
-use em_mcp as _;
-use em_sync as _;
+use solde_api as _;
+use solde_mcp as _;
+use solde_sync as _;
 
 /// Server version, reported by `/healthz`.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -40,12 +40,12 @@ pub fn app() -> Router {
 }
 
 /// Initializes `tracing` (filter from `RUST_LOG`, default `info`; JSON output
-/// when `EM_LOG_FORMAT=json`).
+/// when `SOLDE_LOG_FORMAT=json`).
 pub fn init_tracing() {
     use tracing_subscriber::{EnvFilter, fmt};
 
     let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
-    let json = std::env::var("EM_LOG_FORMAT").is_ok_and(|v| v.eq_ignore_ascii_case("json"));
+    let json = std::env::var("SOLDE_LOG_FORMAT").is_ok_and(|v| v.eq_ignore_ascii_case("json"));
     let builder = fmt().with_env_filter(filter);
     if json {
         builder.json().init();
@@ -72,21 +72,21 @@ pub fn install_panic_hook() {
 /// Validates the master-key file location if one is configured.
 ///
 /// The key itself is not read yet (the vault arrives with the storage layer). If
-/// `EM_MASTER_KEY_FILE` is set, the file must be a readable regular file,
+/// `SOLDE_MASTER_KEY_FILE` is set, the file must be a readable regular file,
 /// otherwise startup fails.
 pub fn check_master_key_file() -> anyhow::Result<Option<PathBuf>> {
-    let Some(path) = std::env::var_os("EM_MASTER_KEY_FILE").map(PathBuf::from) else {
+    let Some(path) = std::env::var_os("SOLDE_MASTER_KEY_FILE").map(PathBuf::from) else {
         return Ok(None);
     };
     let file = std::fs::File::open(&path).map_err(|err| {
         anyhow::anyhow!(
-            "EM_MASTER_KEY_FILE points to {}, which cannot be opened: {err}",
+            "SOLDE_MASTER_KEY_FILE points to {}, which cannot be opened: {err}",
             path.display()
         )
     })?;
     if !file.metadata()?.is_file() {
         anyhow::bail!(
-            "EM_MASTER_KEY_FILE points to {}, which is not a regular file",
+            "SOLDE_MASTER_KEY_FILE points to {}, which is not a regular file",
             path.display()
         );
     }
