@@ -1,8 +1,0 @@
-{
-  "request": { "method": "GET", "path": "/wsost/OstBrokerWeb/loginform", "query": "TAM_OP=login&phase=2&cu=authentInfo" },
-  "response": {
-    "status": 200,
-    "headers": { "content-type": "text/html" },
-    "body": "<html><head><title>Trusted device check - La Banque Postale</title></head><body><h2>For added security</h2><p>A notification was sent to your phone</p><button id=\"back-link\">Continuer</button><script>var PPH = \"https://voscomptesenligne.labanquepostale.fr/wsost\";var URL_AF_POLLING = \"/OstBrokerWeb/loginform?TAM_OP=login&phase=3b&cu=attenteAF\";</script></body></html>"
-  }
-}

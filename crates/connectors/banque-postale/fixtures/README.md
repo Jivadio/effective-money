@@ -3,12 +3,13 @@
 Hand-written, entirely fictional server responses of La Banque Postale's web
 client (`voscomptesenligne.labanquepostale.fr`). No real person, account or
 transaction. Account numbers, UUIDs, balances, dates and labels are invented;
-names follow the project convention (`Jane Doe` is not needed here since the
-pages carry no holder name), the IBAN slot stays empty (the bank does not
-expose it on these pages), and labels are generic (`CARD PAYMENT BAKERY`).
+labels are generic (`CARD PAYMENT BAKERY`) and the IBAN slot stays empty (the
+bank does not expose it on these pages, per the protocol §9).
 
 They follow the fixture format documented in `solde_connector_sdk::http`: one
-JSON file per request, matched on method, path and query, served once each in
+JSON file per request, matched on method, path and query (**exact, order
+included** — `normalize_query` does not reorder parameters, so keep
+`compte.numero=…&typeRecherche=…` in that order), served once each in
 file-name order (strict: running out is an error). Each directory is a
 scenario; tests load `login-ok/` and overlay another directory on top of it
 (`FixtureSet::from_dirs`). The session cookie in the entry and auth responses
@@ -17,15 +18,20 @@ holds the test canary `CANARY-7f3a9c`: tests check it never reaches the logs.
 `cargo xtask fixtures-scrub-check` must stay green on this directory. The raw
 captures these fixtures were modelled on are kept off-repo.
 
-| Directory | Scenario | T1 section illustrated |
+Amounts use the bank's real formatting: a narrow no-break space (U+202F) as
+the thousand separator and before the euro sign, a comma decimal, and a
+`€` or `EUR` marker in the visible cell only — the `col-montant-brut` cell
+carries the machine value with a dot decimal (protocol §10).
+
+| Directory | Scenario | Protocol section |
 |---|---|---|
-| `login-ok/` | Full trusted-device login (no push): entry → form → auth POST → session, checking + Livret A + LEP accounts, checking statement (two identical `CARD PAYMENT BAKERY` rows on 13/10), second statement page, both savings statements. | §1–§3, §7–§10 |
-| `challenge/` | Untrusted-device login: auth POST → `302` challenge, challenge page with `PPH`/`URL_AF_POLLING`, polling → approved. | §4 |
-| `expired/` | Saved session is dead: the synthesis read answers `302` to the login form (`SessionExpired`). | §7 |
-| `auth-failed/` | Wrong identifier or code: the auth POST re-renders the login form with an error banner (`AuthFailed`). | §3, §11 |
-| `server-error/` | The bank answers `500` on a synthesis read (`Network`, one idempotent retry allowed). | §7, §11 |
+| `login-ok/` | Trusted-device login (no push): entry redirect → login form → auth POST → session. Three accounts (checking, Livret A, LEP), the checking statement with two identical `CARD PAYMENT BAKERY` rows on 13/10, a second statement page, both savings statements. | §1–§3, §7–§10 |
+| `challenge/` | Untrusted-device login: auth POST → notice page (`message.html?param=AuthentInfoAF`) → Continuer (`#back-link`) → waiting page carrying `PPH` and `URL_AF_POLLING` → the poll answers `200` once, then `302` to the session (approved). Overlay on `login-ok/` for the post-login reads. | §3, §4 |
+| `expired/` | The saved session is dead: the synthesis probe answers `302` to the login form → `SessionExpired`. | §7 |
+| `auth-failed/` | Wrong identifier or code: the auth POST re-renders the login form with an error banner (`200`) → `AuthFailed`. | §3, §11 |
+| `server-error/` | The bank answers `500` twice on the synthesis read, so the single idempotent read retry is served too (`02-…-retry.json` carries the same request key and is served second) → `Network`. | §7, §11 |
 | `pending-day1/` | Overlay on `login-ok/`: the checking statement carries a pending supermarket payment (`data-status="pending"`, 14/10). | §10 |
-| `pending-day2/` | Overlay on `pending-day1/` (i.e. `from_dirs(login-ok, pending-day1, pending-day2)`): the same payment is now booked (15/10, booked label). | §10 |
+| `pending-day2/` | Overlay on `login-ok/` + `pending-day1/`: the same payment is now booked (15/10, booked label). | §10 |
 
 ## Synthetic extensions (to confirm live)
 
@@ -35,7 +41,9 @@ plausibly so T5 can be written and tested; each is marked `[to confirm]` in
 
 - `data-status="pending"` (`pending-day1/`): no pending/booked distinction was
   observed on the statement pages. If the bank never marks pending rows, the
-  connector treats every row as booked.
-- `&page=2` (`login-ok/07`): the statement pagination shape is illustrative.
-- `typeRecherche=15` on the savings cards: checking uses `"5"`; the savings
-  values are taken from modelled markup, not a live capture.
+  connector treats every row as booked and this overlay is unused.
+- The `Older operations` link and the `&page=2` statement (`login-ok/06`,
+  `login-ok/07`): the pagination shape is illustrative — no pagination was
+  observed.
+- `typeRecherche=15` on the savings cards (`login-ok/05`): checking uses `"5"`;
+  the savings values are modelled, not captured.

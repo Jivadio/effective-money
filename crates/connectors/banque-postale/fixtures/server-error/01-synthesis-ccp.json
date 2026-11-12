@@ -1,8 +1,13 @@
 {
-  "request": { "method": "GET", "path": "/voscomptes/canalXHTML/comptesCommun/synthese_ccp/afficheSyntheseCCP-synthese_ccp.ea" },
+  "request": {
+    "method": "GET",
+    "path": "/voscomptes/canalXHTML/comptesCommun/synthese_ccp/afficheSyntheseCCP-synthese_ccp.ea"
+  },
   "response": {
     "status": 500,
-    "headers": { "content-type": "text/html" },
-    "body": "<html><head><title>Technical error</title></head><body><p>The service is temporarily unavailable, please try again later.</p></body></html>"
+    "headers": {
+      "content-type": "text/html"
+    },
+    "body": "<html><head><title>Erreur technique</title></head><body><p>Le service est momentanément indisponible, merci de réessayer plus tard.</p></body></html>"
   }
 }

@@ -1,8 +1,14 @@
 {
-  "request": { "method": "GET", "path": "/voscomptes/canalXHTML/CNE/releveCNE/init-releve_cne.ea", "query": "compte.numero=33333333-3333-3333-3333-333333333333&typeRecherche=15" },
+  "request": {
+    "method": "GET",
+    "path": "/voscomptes/canalXHTML/CNE/releveCNE/init-releve_cne.ea",
+    "query": "compte.numero=33333333-3333-3333-3333-333333333333&typeRecherche=15"
+  },
   "response": {
     "status": 200,
-    "headers": { "content-type": "text/html" },
-    "body": "<table class=\"list operations table-version2020\" id=\"mouvementsTable\"><tr class=\"row head\"><th class=\"col\">Date</th><th class=\"col\">Libellé</th><th class=\"col\">Montant</th></tr><tr class=\"row btn-full-lightbox\"><td class=\"col label col-date\"><span class=\"sorted-value\">01/10/2026</span></td><td class=\"col label col-libelle\">TRANSFER FROM CHECKING</td><td class=\"col montant cell-right col-montant\"><span class=\"amount_positif\">+ 200,00 €</span></td><td class=\"col label col-montant-brut sr-only\">200.0</td></tr></table>"
+    "headers": {
+      "content-type": "text/html"
+    },
+    "body": "<table class=\"list operations table-version2020\" id=\"mouvementsTable\"><tr class=\"row head\"><th class=\"col\">Date</th><th class=\"col\">Libellé</th><th class=\"col\">Montant</th></tr><tr class=\"row btn-full-lightbox\"><td class=\"col label col-date\"><span class=\"sorted-value\">01/10/2026</span></td><td class=\"col label col-libelle\">TRANSFER FROM CHECKING</td><td class=\"col montant cell-right col-montant\"><span class=\"amount_positif\">+ 200,00 €</span></td><td class=\"col label col-montant-brut sr-only\">200.0</td></tr></table>"
   }
 }
