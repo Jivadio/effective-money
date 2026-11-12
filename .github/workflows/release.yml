@@ -19,19 +19,35 @@ jobs:
     name: release-please
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # The default GITHUB_TOKEN is not allowed to create pull requests in this
+    # repository (on purpose). release-please runs with a short-lived token from
+    # the repository's GitHub App instead, so the token below needs no rights.
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
+    env:
+      # Both the app's client ID (variable) and private key (secret) are needed.
+      RELEASE_APP_CONFIGURED: ${{ vars.RELEASE_APP_CLIENT_ID != '' && secrets.RELEASE_APP_PRIVATE_KEY != '' }}
     steps:
-      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+      - name: Skip when the release app is not configured
+        if: env.RELEASE_APP_CONFIGURED != 'true'
+        run: echo "::notice::RELEASE_APP_CLIENT_ID or RELEASE_APP_PRIVATE_KEY is not set; skipping release-please. See docs/README.md (For maintainers)."
+
+      - name: Mint a GitHub App token
+        id: app-token
+        if: env.RELEASE_APP_CONFIGURED == 'true'
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
-          # PRs opened with the default GITHUB_TOKEN do not trigger workflows, so
-          # the required checks never run and the release PR cannot be merged.
-          # Set RELEASE_PLEASE_TOKEN to a GitHub App token or fine-grained PAT
-          # (contents + pull requests: write) so checks run on release PRs.
-          # Prefer a GitHub App token: its release PRs are opened by a bot account,
-          # which the DCO check skips. A PAT opens them as a person, so DCO then
-          # requires a matching Signed-off-by on every release commit.
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
+
+      # Release PRs opened by the app are authored by a bot account, so the
+      # required checks run on them and the DCO check skips them.
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        if: env.RELEASE_APP_CONFIGURED == 'true'
+        with:
+          token: ${{ steps.app-token.outputs.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
