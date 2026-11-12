@@ -1,0 +1,8 @@
+{
+  "request": { "method": "POST", "path": "/api/login" },
+  "response": {
+    "status": 200,
+    "headers": { "content-type": "application/json" },
+    "body": { "otp_required": true, "challenge_id": "challenge-0001" }
+  }
+}

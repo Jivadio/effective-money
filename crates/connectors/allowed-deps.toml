@@ -1,7 +1,19 @@
-# Allow-list of third-party crates that connector crates (crates/connectors/*)
-# may pull in, checked over the TRANSITIVE dependency closure by
-# `cargo xtask check-deps`. Adding an entry requires a core-maintainer review
-# (see CODEOWNERS) and a `cargo vet` audit or trusted import.
+# Third-party crates that bank connector crates (crates/connectors/*, except
+# the SDK) may declare as DIRECT dependencies, checked by
+# `cargo xtask check-deps`.
+#
+# Trust boundary: `solde-connector-sdk` is the trusted, reviewed boundary.
+# Whatever the SDK or an entry below pulls in transitively is reviewed through
+# that crate (cargo vet, cargo deny), so it is not listed here. A connector
+# that adds any other crate directly (e.g. `reqwest`) fails the check: HTTP,
+# WebSocket and browser access go through the SDK clients.
+#
+# Adding an entry requires a core-maintainer review (see CODEOWNERS) and a
+# `cargo vet` audit or trusted import.
 #
 # Format: crate names (not versions); every version of a listed crate is allowed.
-allowed = []
+allowed = [
+    # Parsing the bank's JSON responses.
+    "serde",
+    "serde_json",
+]

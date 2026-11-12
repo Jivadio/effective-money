@@ -7,8 +7,15 @@ license.workspace = true
 repository.workspace = true
 publish = false
 
+# Connector crates may depend directly only on the SDK and on crates listed in
+# crates/connectors/allowed-deps.toml (checked by `cargo xtask check-deps`).
 [dependencies]
+serde.workspace = true
+serde_json.workspace = true
 solde-connector-sdk = { path = "../connector-sdk" }
+
+[dev-dependencies]
+solde-connector-sdk = { path = "../connector-sdk", features = ["testkit"] }
 
 [lints]
 workspace = true

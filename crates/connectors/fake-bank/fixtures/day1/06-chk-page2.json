@@ -1,0 +1,15 @@
+{
+  "request": { "method": "GET", "path": "/api/accounts/CHK-001/transactions", "query": "page=2" },
+  "response": {
+    "status": 200,
+    "headers": { "content-type": "application/json" },
+    "body": {
+      "next_page": 3,
+      "transactions": [
+        { "id": "tx-1001", "date": "2026-01-10", "value_date": "2026-01-09", "amount": "-42.90", "currency": "EUR", "label": "DIRECT DEBIT ELECTRICITY", "status": "booked" },
+        { "id": null, "date": "2026-01-05", "value_date": null, "amount": "-19.99", "currency": "EUR", "label": "CARD PAYMENT BOOKSHOP", "status": "booked" },
+        { "id": "tx-0999", "date": "2025-12-28", "value_date": null, "amount": "-5.00", "currency": "EUR", "label": "CARD PAYMENT NEWSAGENT", "status": "booked" }
+      ]
+    }
+  }
+}

@@ -5,7 +5,7 @@ Welcome, and thank you for being here! First time contributing to open source? Y
 ## Ways to help
 
 - Report a bug or share an idea (an issue is a real contribution).
-- Build or improve a bank connector.
+- Build or improve a bank connector: start with the [connector guide](docs/connectors/writing-a-connector.md).
 - Work on the UI (see [DESIGN.md](DESIGN.md)), accessibility, or translations: the app ships in English, French, Italian, German and Spanish.
 - Improve the docs.
 - Test with your own bank and tell us what happens.
@@ -29,7 +29,7 @@ The Rust version is pinned in `rust-toolchain.toml`, and pnpm in `package.json`.
 ## Sending a change
 
 1. Branch from `main` (for example `feat/my-idea` or `fix/typo`).
-2. Make your change, with a test if it changes behaviour.
+2. Make your change, with a test if it changes behaviour. If it affects something the docs describe, update them in the same PR; we'll help if you're not sure which.
 3. Open a PR. We squash-merge, so your commit history doesn't need to be tidy.
 
 **How reviews work:** right now there's a single maintainer, so a PR is merged once CI is green (CodeRabbit gives it a first read). As more maintainers join, PRs will get a human review, and changes to sensitive areas (secrets, sync, the connector SDK, connector dependencies) will get two pairs of eyes.
@@ -45,7 +45,7 @@ If your change touches accounts, budgets or the API, a test that checks one hous
 
 ## One thing we're serious about: no real bank data
 
-Please never paste real bank credentials, tokens, IBANs or real transactions into code, tests, fixtures, issues or PRs. Git history and issue trackers are public and permanent, so a leaked secret is very hard to take back. Use fake data; our fixture tooling will include a scrubber for recorded responses.
+Please never paste real bank credentials, tokens, IBANs or real transactions into code, tests, fixtures, issues or PRs. Git history and issue trackers are public and permanent, so a leaked secret is very hard to take back. Use fake data; the connector SDK's scrubber anonymizes recorded responses, you still review them by hand, and CI's `cargo xtask fixtures-scrub-check` double-checks committed fixtures (see the [connector guide](docs/connectors/writing-a-connector.md)).
 
 If it happens by accident, no panic: change the password or revoke the token first, then tell a maintainer (privately, see [SECURITY.md](SECURITY.md)) and we'll clean up together.
 
@@ -55,7 +55,7 @@ AI-assisted contributions are welcome. You're still the author: please understan
 
 ## Dependencies
 
-Adding a dependency is fine, just say why in the PR. Connector crates keep a short allow-list of dependencies, because they handle sensitive data.
+Adding a dependency is fine, just say why in the PR. Bank connector crates keep a short allow-list of direct dependencies (`crates/connectors/allowed-deps.toml`) and reach the network only through the connector SDK, because they handle sensitive data.
 
 ## Be kind
 

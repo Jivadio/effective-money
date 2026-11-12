@@ -6,8 +6,16 @@
 //! 1. every workspace member is declared in [`ALLOWED_EDGES`], and each of its
 //!    direct workspace dependencies is listed there;
 //! 2. the [`FORBIDDEN`] edges do not exist in the TRANSITIVE closure;
-//! 3. the transitive closure of every connector crate only contains connector
-//!    crates and third-party crates listed in `crates/connectors/allowed-deps.toml`.
+//! 3. every bank connector crate (`solde-connector-*` except the SDK) declares
+//!    as DIRECT dependencies (normal, build or dev) only connector crates and
+//!    third-party crates listed in `crates/connectors/allowed-deps.toml`.
+//!    `solde-connector-sdk` is the trusted boundary: what it, or an allowed
+//!    crate, pulls in transitively is reviewed through that crate (cargo vet,
+//!    cargo deny) and is not restricted here. So a bank crate cannot add
+//!    `reqwest` itself, while the SDK uses it to implement `HttpClient`.
+//!
+//! 4. bank connector crates pass the guardrails of [`crate::connector_lint`]
+//!    (no build script, no lint opt-outs, no `std::process`/`std::env`...).
 //!
 //! The closure of a crate includes its own dev-dependencies, then follows only
 //! normal and build dependencies (dev-dependencies of dependencies are never
@@ -21,6 +29,9 @@ use cargo_metadata::{CargoOpt, DependencyKind, MetadataCommand};
 use serde::Deserialize;
 
 const CONNECTOR_PREFIX: &str = "solde-connector-";
+
+/// The connector SDK: trusted boundary, exempt from rule 3.
+const CONNECTOR_SDK: &str = "solde-connector-sdk";
 
 /// Direct workspace dependencies each workspace crate may declare.
 const ALLOWED_EDGES: &[(&str, &[&str])] = &[
@@ -203,17 +214,29 @@ pub fn check(graph: &Graph, connector_allowed_external: &BTreeSet<String>) -> Ve
         }
     }
 
-    // Rule 3: connector closure limited to connectors + allowed-deps.toml.
-    for connector in graph.members.iter().filter(|m| is_connector(m)) {
-        for dep in graph.closure(connector) {
-            let ok = if graph.members.contains(&dep) {
-                is_connector(&dep)
+    // Rule 3: bank connectors' direct dependencies limited to connector
+    // crates + allowed-deps.toml. The SDK is the trusted boundary.
+    for connector in graph
+        .members
+        .iter()
+        .filter(|m| is_connector(m) && *m != CONNECTOR_SDK)
+    {
+        let direct: BTreeSet<&String> = graph
+            .deps
+            .get(connector)
+            .into_iter()
+            .flatten()
+            .map(|(d, _)| d)
+            .collect();
+        for dep in direct {
+            let ok = if graph.members.contains(dep) {
+                is_connector(dep)
             } else {
-                connector_allowed_external.contains(&dep)
+                connector_allowed_external.contains(dep)
             };
             if !ok {
                 violations.push(format!(
-                    "{connector} ->* {dep}: not allowed for connectors (see crates/connectors/allowed-deps.toml)"
+                    "{connector} -> {dep}: direct dependency not allowed for connectors (use the SDK, or see crates/connectors/allowed-deps.toml)"
                 ));
             }
         }
@@ -262,6 +285,11 @@ fn graph_for(manifest_path: Option<&Path>) -> anyhow::Result<Graph> {
             let to = names
                 .get(&dep.pkg)
                 .with_context(|| format!("unknown package id {}", dep.pkg))?;
+            if to == from {
+                // A dev-dependency on itself only enables features (e.g. the
+                // SDK's own tests use its `testkit` feature).
+                continue;
+            }
             let dev_only = !dep.dep_kinds.is_empty()
                 && dep
                     .dep_kinds
@@ -287,7 +315,7 @@ fn load_allowed_deps(workspace_root: &Path) -> anyhow::Result<BTreeSet<String>> 
     Ok(parsed.allowed)
 }
 
-fn workspace_root() -> &'static Path {
+pub fn workspace_root() -> &'static Path {
     // xtask lives at <root>/xtask.
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -297,7 +325,8 @@ fn workspace_root() -> &'static Path {
 pub fn run() -> anyhow::Result<()> {
     let graph = workspace_graph()?;
     let allowed = load_allowed_deps(workspace_root())?;
-    let violations = check(&graph, &allowed);
+    let mut violations = check(&graph, &allowed);
+    violations.extend(crate::connector_lint::check_workspace(workspace_root())?);
     if violations.is_empty() {
         println!(
             "check-deps: OK ({} workspace crates checked)",
@@ -416,7 +445,6 @@ mod tests {
     fn connector_rules() {
         let mut g = reference_graph();
         g.add_edge("solde-connector-fake-bank", "solde-core-domain", false);
-        g.add_edge("solde-connector-sdk", "reqwest", false);
         let v = check(&g, &BTreeSet::new());
         assert!(
             v.iter().any(
@@ -424,14 +452,61 @@ mod tests {
             ),
             "{v:?}"
         );
+        // Even reached through the SDK, core-domain stays forbidden.
+        let mut g = reference_graph();
+        g.add_edge("solde-connector-sdk", "solde-core-domain", false);
+        let v = check(&g, &BTreeSet::new());
         assert!(
-            v.iter()
-                .any(|m| m.starts_with("solde-connector-sdk ->* reqwest: not allowed")),
+            v.iter().any(|m| m
+                .starts_with("solde-connector-banque-postale ->* solde-core-domain: forbidden")),
             "{v:?}"
         );
-        // Allow-listing the external crate clears the connector rule for it.
-        let allowed: BTreeSet<String> = ["reqwest".to_owned()].into();
-        assert!(!check(&g, &allowed).iter().any(|m| m.contains("reqwest")));
+    }
+
+    #[test]
+    fn sdk_may_use_any_third_party_crate() {
+        let mut g = reference_graph();
+        g.add_edge("solde-connector-sdk", "reqwest", false);
+        g.add_edge("reqwest", "hyper", false);
+        assert_eq!(check(&g, &BTreeSet::new()), Vec::<String>::new());
+    }
+
+    #[test]
+    fn bank_connector_adding_reqwest_directly_fails() {
+        let mut g = reference_graph();
+        g.add_edge("solde-connector-sdk", "reqwest", false);
+        g.add_edge("solde-connector-banque-postale", "reqwest", false);
+        let v = check(&g, &BTreeSet::new());
+        assert_eq!(
+            v,
+            [
+                "solde-connector-banque-postale -> reqwest: direct dependency not allowed for connectors (use the SDK, or see crates/connectors/allowed-deps.toml)"
+            ]
+        );
+        // Also as a dev-dependency.
+        let mut g = reference_graph();
+        g.add_edge("solde-connector-fake-bank", "reqwest", true);
+        assert!(
+            check(&g, &BTreeSet::new())
+                .iter()
+                .any(|m| m.starts_with("solde-connector-fake-bank -> reqwest: direct")),
+        );
+    }
+
+    #[test]
+    fn allowed_crates_and_their_dependencies_pass() {
+        let mut g = reference_graph();
+        g.add_edge("solde-connector-fake-bank", "serde_json", false);
+        g.add_edge("serde_json", "memchr", false);
+        let v = check(&g, &BTreeSet::new());
+        assert!(
+            v.iter()
+                .any(|m| m.starts_with("solde-connector-fake-bank -> serde_json: direct")),
+            "{v:?}"
+        );
+        // Allow-listing the crate clears it; its own dependencies are trusted.
+        let allowed: BTreeSet<String> = ["serde_json".to_owned()].into();
+        assert_eq!(check(&g, &allowed), Vec::<String>::new());
     }
 
     #[test]

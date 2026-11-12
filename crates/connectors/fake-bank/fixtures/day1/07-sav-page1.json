@@ -1,0 +1,13 @@
+{
+  "request": { "method": "GET", "path": "/api/accounts/SAV-001/transactions", "query": "page=1" },
+  "response": {
+    "status": 200,
+    "headers": { "content-type": "application/json" },
+    "body": {
+      "next_page": null,
+      "transactions": [
+        { "id": "tx-2001", "date": "2026-01-02", "value_date": null, "amount": "100.00", "currency": "EUR", "label": "TRANSFER FROM CHECKING", "status": "booked" }
+      ]
+    }
+  }
+}

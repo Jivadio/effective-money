@@ -7,13 +7,35 @@ license.workspace = true
 repository.workspace = true
 publish = false
 
+# One `bank-*` feature per connector, on by default so a build can drop a
+# connector with `--no-default-features --features ...`. `bank-fake` (the demo
+# bank) is off by default so production builds never offer it.
+[features]
+default = [
+    "bank-enable-banking",
+    "bank-trade-republic",
+    "bank-banque-populaire",
+    "bank-banque-postale",
+]
+# Dev/demo only.
+bank-fake = ["dep:solde-connector-fake-bank"]
+# Placeholders: these crates do not implement a connector yet and are not
+# registered (see src/lib.rs).
+bank-enable-banking = ["dep:solde-connector-enable-banking"]
+bank-trade-republic = ["dep:solde-connector-trade-republic"]
+bank-banque-populaire = ["dep:solde-connector-banque-populaire"]
+bank-banque-postale = ["dep:solde-connector-banque-postale"]
+
 [dependencies]
 solde-connector-sdk = { path = "../connector-sdk" }
-solde-connector-fake-bank = { path = "../fake-bank" }
-solde-connector-enable-banking = { path = "../enable-banking" }
-solde-connector-trade-republic = { path = "../trade-republic" }
-solde-connector-banque-populaire = { path = "../banque-populaire" }
-solde-connector-banque-postale = { path = "../banque-postale" }
+solde-connector-fake-bank = { path = "../fake-bank", optional = true }
+solde-connector-enable-banking = { path = "../enable-banking", optional = true }
+solde-connector-trade-republic = { path = "../trade-republic", optional = true }
+solde-connector-banque-populaire = { path = "../banque-populaire", optional = true }
+solde-connector-banque-postale = { path = "../banque-postale", optional = true }
+
+[dev-dependencies]
+solde-connector-sdk = { path = "../connector-sdk", features = ["testkit"] }
 
 [lints]
 workspace = true

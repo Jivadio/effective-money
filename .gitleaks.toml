@@ -1,0 +1,17 @@
+# gitleaks configuration: the default rules, plus one narrow allowlist entry.
+[extend]
+useDefault = true
+
+# The test canary is a deliberately fake marker that tests check never
+# reaches logs, errors or recorded fixtures. Allowed only when the flagged
+# secret contains it AND it sits in connector fixtures or tests (or the
+# fixtures-scrub-check unit tests).
+[[allowlists]]
+description = "Test canary CANARY-7f3a9c in connector fixtures and tests"
+condition = "AND"
+regexTarget = "secret"
+regexes = ['''CANARY-7f3a9c''']
+paths = [
+    '''^crates/connectors/[a-z0-9-]+/(fixtures|tests)/''',
+    '''^xtask/src/fixtures_scrub\.rs$''',
+]

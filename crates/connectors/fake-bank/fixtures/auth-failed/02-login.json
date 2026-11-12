@@ -1,0 +1,4 @@
+{
+  "request": { "method": "POST", "path": "/api/login" },
+  "response": { "status": 401, "headers": { "content-type": "application/json" }, "body": { "error": "invalid_credentials" } }
+}

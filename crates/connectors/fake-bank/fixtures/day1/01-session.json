@@ -1,0 +1,4 @@
+{
+  "request": { "method": "GET", "path": "/api/session" },
+  "response": { "status": 200, "headers": { "content-type": "application/json" }, "body": { "valid": true } }
+}

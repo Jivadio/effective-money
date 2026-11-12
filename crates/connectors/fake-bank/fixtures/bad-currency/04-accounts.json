@@ -1,0 +1,11 @@
+{
+  "request": { "method": "GET", "path": "/api/accounts" },
+  "response": {
+    "status": 200,
+    "body": {
+      "accounts": [
+        { "id": "CHK-001", "type": "checking", "name": "Current account", "iban": null, "currency": "ZZZ", "balance": "1.00" }
+      ]
+    }
+  }
+}

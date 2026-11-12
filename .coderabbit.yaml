@@ -28,12 +28,15 @@ reviews:
     - "!**/*.generated.*"
     - "!LICENSE"
   path_instructions:
+    - path: "**/*"
+      instructions: |
+        Docs must stay in sync with the code. If the PR changes behaviour, rules, commands, names or architecture that README.md, AGENTS.md, CONTRIBUTING.md, DESIGN.md, docs/ or .github/copilot-instructions.md describe, and does not update them, point out which docs need updating. Planned features must not be described as done.
     - path: "crates/secrets/**"
       instructions: |
         Sensitive code. Check that no secret can end up in logs, `Debug`, `Display` or `Serialize`; that sensitive values are wiped from memory (zeroize); that keys are not cloned needlessly; and that neither the API nor MCP can reach decryption (only `crates/sync` may depend on this crate).
     - path: "crates/connectors/**"
       instructions: |
-        Check that no real credentials, IBANs or personal data appear in code or fixtures; that the crate depends only on `connector-sdk` and the dependencies listed in `allowed-deps.toml`; that all HTTP/WS access goes through the SDK clients; and that nothing sensitive is logged.
+        Check that no real credentials, IBANs or personal data appear in code or fixtures; that the crate depends only on `connector-sdk` and the dependencies listed in `allowed-deps.toml`; that all HTTP/WS/browser access goes through the SDK clients; that bank connectors do not use `std::process`, `std::env`, the system time or lint opt-outs; that Unattended logins send nothing that could trigger an OTP; and that nothing sensitive is logged.
     - path: "crates/mcp/**"
       instructions: |
         Check that token scopes are enforced on every tool, that text coming from bank transactions is treated as untrusted (prompt injection), and that no credential or secret is exposed in responses.
