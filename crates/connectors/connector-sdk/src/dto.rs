@@ -126,8 +126,10 @@ impl RemoteTransaction {
         }
     }
 
+    /// An empty or whitespace-only id counts as missing (`None`), so it
+    /// gets a synthetic id instead of colliding with other blank ids.
     pub fn with_remote_id(mut self, remote_id: Option<String>) -> Self {
-        self.remote_id = remote_id;
+        self.remote_id = remote_id.filter(|id| !id.trim().is_empty());
         self
     }
 
@@ -178,5 +180,27 @@ impl RemotePosition {
     pub fn with_market_value_minor(mut self, market_value_minor: Option<i64>) -> Self {
         self.market_value_minor = market_value_minor;
         self
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn tx() -> RemoteTransaction {
+        let date = NaiveDate::from_ymd_opt(2026, 1, 15).expect("valid test date");
+        RemoteTransaction::new(date, -100, Currency::EUR, "TEST", TransactionStatus::Booked)
+    }
+
+    #[test]
+    fn blank_remote_id_counts_as_missing() {
+        assert_eq!(tx().with_remote_id(Some(String::new())).remote_id, None);
+        assert_eq!(tx().with_remote_id(Some("  \t".to_owned())).remote_id, None);
+        assert_eq!(
+            tx().with_remote_id(Some("bank-1".to_owned()))
+                .remote_id
+                .as_deref(),
+            Some("bank-1")
+        );
     }
 }

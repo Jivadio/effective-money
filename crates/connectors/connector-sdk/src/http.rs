@@ -802,9 +802,13 @@ impl FixtureSet {
             key.query = normalize_query(key.query.as_deref(), &self.ignored_query);
             self.entries.entry(key).or_default().extend(fixtures);
         }
-        // Merged entries keep the file-name order.
+        // Merged entries keep the file-name order. As in `from_dirs`, a later
+        // directory replaces an earlier one: keep only the latest layer.
         for fixtures in self.entries.values_mut() {
             fixtures.sort_by_key(|f| f.seq);
+            if let Some(latest) = fixtures.last().map(|f| f.seq.0) {
+                fixtures.retain(|f| f.seq.0 == latest);
+            }
         }
         self
     }
@@ -1166,6 +1170,30 @@ mod tests {
             let r = http.send(HttpRequest::get(url("/a?_=zzz"))).await.unwrap();
             assert_eq!(r.text().unwrap(), expected);
         }
+    }
+
+    #[tokio::test]
+    async fn ignored_params_keep_only_the_latest_directory() {
+        let fixture = |buster: &str, body: &str| {
+            format!(
+                r#"{{"request":{{"method":"GET","path":"/a","query":"page=1&_={buster}"}},"response":{{"status":200,"body":"{body}"}}}}"#
+            )
+        };
+        let (day1, day2) = (fixture("111", "day1"), fixture("222", "day2"));
+        let mut layered = FixtureSet::parse(0, [("1.json", day1.as_str())].into_iter()).unwrap();
+        let later = FixtureSet::parse(1, [("1.json", day2.as_str())].into_iter()).unwrap();
+        layered.entries.extend(later.entries);
+        let http = HttpClient::replay(layered.ignore_query_params(&["_"])).unwrap();
+        let r = http
+            .send(HttpRequest::get(url("/a?page=1&_=9")))
+            .await
+            .unwrap();
+        assert_eq!(r.text().unwrap(), "day2");
+        assert!(
+            http.send(HttpRequest::get(url("/a?page=1&_=9")))
+                .await
+                .is_err()
+        );
     }
 
     #[tokio::test]

@@ -35,7 +35,6 @@ pub struct Capabilities {
     pub accounts: bool,
     pub transactions: bool,
     pub positions: bool,
-    pub quotes: bool,
 }
 
 impl Capabilities {
@@ -55,11 +54,6 @@ impl Capabilities {
 
     pub fn with_positions(mut self) -> Self {
         self.positions = true;
-        self
-    }
-
-    pub fn with_quotes(mut self) -> Self {
-        self.quotes = true;
         self
     }
 }
@@ -187,7 +181,7 @@ impl From<InteractionError> for ConnectorError {
 
 #[async_trait]
 pub trait BankConnector: Send + Sync {
-    /// id, capabilities {accounts, transactions, positions, quotes}, credential fields, stability.
+    /// id, capabilities {accounts, transactions, positions}, credential fields, stability.
     fn manifest(&self) -> ConnectorManifest;
 
     /// `prev` is the last saved session, if any. The credentials are in

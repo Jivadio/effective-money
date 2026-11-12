@@ -2,11 +2,12 @@
 # the nearest clippy.toml, so this one replaces the workspace root file here).
 #
 # Bank connectors must do all network I/O through the SDK clients
-# (`HttpClient`, `BrowserClient`), and have no business starting processes or
-# reading the environment. Direct HTTP, WebSocket and socket types, processes
-# and environment reads are banned below. `solde-connector-sdk` lifts the ban
-# with a crate-level `#![allow(...)]`, since it is where that I/O is
-# implemented. `cargo xtask check-deps` rejects that opt-out anywhere else.
+# (`HttpClient`, `BrowserClient`), and have no business starting or ending
+# processes or touching the environment. Direct HTTP, WebSocket and socket
+# types, processes (including `exit` and `abort`) and environment access are
+# banned below. `solde-connector-sdk` lifts the ban with a crate-level
+# `#![allow(...)]`, since it is where that I/O is implemented.
+# `cargo xtask check-deps` rejects that opt-out anywhere else.
 #
 # These are guardrails, not a sandbox: code review is the real boundary.
 
@@ -39,9 +40,19 @@ disallowed-methods = [
     { path = "reqwest::get", reason = "use solde_connector_sdk::http::HttpClient", allow-invalid = true },
     { path = "tokio_tungstenite::connect_async", reason = "WebSockets go through the SDK", allow-invalid = true },
     { path = "std::process::Command::new", reason = "connectors must not start processes" },
+    { path = "std::process::exit", reason = "connectors return errors; they never end the process" },
+    { path = "std::process::abort", reason = "connectors return errors; they never end the process" },
     { path = "std::env::var", reason = "configuration comes from the app; tests use testkit::live_credentials" },
     { path = "std::env::var_os", reason = "configuration comes from the app; tests use testkit::live_credentials" },
     { path = "std::env::vars", reason = "configuration comes from the app" },
+    { path = "std::env::vars_os", reason = "configuration comes from the app" },
+    { path = "std::env::args", reason = "configuration comes from the app" },
+    { path = "std::env::args_os", reason = "configuration comes from the app" },
+    { path = "std::env::current_dir", reason = "connectors do not touch the file system" },
+    { path = "std::env::set_current_dir", reason = "connectors do not touch the file system" },
+    { path = "std::env::temp_dir", reason = "connectors do not touch the file system" },
+    { path = "std::env::set_var", reason = "connectors must not change the process environment" },
+    { path = "std::env::remove_var", reason = "connectors must not change the process environment" },
     { path = "std::fs::read", reason = "connectors do not touch the file system" },
     { path = "std::fs::read_to_string", reason = "connectors do not touch the file system" },
     { path = "std::fs::read_dir", reason = "connectors do not touch the file system" },

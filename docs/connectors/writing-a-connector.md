@@ -153,9 +153,12 @@ Also mark every request that can trigger an OTP with
 context refuses it in Unattended mode before it leaves the machine, and
 `HttpClient::send` refuses marked requests outright, so they cannot bypass
 the context. The testkit fails your tests if an Unattended login even tries.
-Marking is still a **review point** (the SDK cannot know which bank request
-sends an SMS); forgetting it is harmless in Unattended mode only because no
-credentials are available there.
+Marking is **mandatory and checked in review** (the SDK cannot know which
+bank request sends an SMS). Forgetting it is not harmless: no credentials are
+available in Unattended mode, but an unmarked request that can be sent with
+only a session token (for example "send me a new code" or a step-up
+endpoint) WILL reach the bank and can make it send an OTP to the user
+without anyone asking.
 
 Errors: a challenge the user cancels is `ChallengeCancelled`, one left
 unanswered is `ChallengeTimeout` (the context enforces a 5-minute deadline),
@@ -185,7 +188,8 @@ List every OTP trigger of your bank in its `protocol.md`.
       .with_session(&SessionOptions::default(), |s| Box::pin(async move {
           s.run(&[
               Action::goto("https://bank.example/login"),
-              Action::fill("#user", creds.expose_required("username")?),
+              // A username is personal data: keep it out of helper logs too.
+              Action::fill_secret("#user", creds.expose_required("username")?),
               Action::fill_secret("#password", creds.expose_required("password")?),
               Action::click("button[type=submit]"),
               Action::wait_for("#dashboard", Duration::from_secs(15)),
@@ -227,7 +231,9 @@ Fakes are stable within a recording, so twins stay identical and ids stay
 consistent. Amounts and dates are not changed. **Then review every file by
 hand**: the scrubber is a helper, not a guarantee. `cargo xtask
 fixtures-scrub-check` (run in CI) fails on committed fixtures that still
-look like real IBANs, cards, JWTs, e-mails or tokens.
+look like real IBANs, cards, JWTs, e-mails or tokens, or that hold any value
+(string or number, at any depth) under a secret key such as `pin`, `otp`,
+`authorization` or `set-cookie` other than `SCRUBBED`, `0` or the canary.
 
 No real data, ever: no credentials, names, IBANs, account numbers or real
 labels in code, fixtures, logs, screenshots, PRs or AI prompts. Use

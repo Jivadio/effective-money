@@ -477,19 +477,28 @@ impl Scrubber {
     }
 
     /// Replaces every already-mapped value of 6+ characters found in `text`.
+    /// Names, labels and addresses are words of free text (`LIVRET` must not
+    /// rewrite `LIVRET_A`), so they are replaced as whole words only; ids,
+    /// tokens and other machine values anywhere.
     fn replace_known(&self, text: &str) -> String {
-        let mut known: Vec<(&String, &String)> = self
+        let mut known: Vec<(KeyKind, &String, &String)> = self
             .mapped
             .iter()
             .filter(|((_, real), _)| real.chars().count() >= 6)
-            .map(|((_, real), fake)| (real, fake))
+            .map(|((kind, real), fake)| (*kind, real, fake))
             .collect();
-        known.sort_by_key(|(real, _)| std::cmp::Reverse(real.len()));
+        known.sort_by_key(|(_, real, _)| std::cmp::Reverse(real.len()));
         let mut out = text.to_owned();
-        for (real, fake) in known {
-            if out.contains(real.as_str()) {
-                out = out.replace(real.as_str(), fake);
+        for (kind, real, fake) in known {
+            if !out.contains(real.as_str()) {
+                continue;
             }
+            out = match kind {
+                KeyKind::Name | KeyKind::Label | KeyKind::Address => {
+                    replace_whole_words(&out, real, fake)
+                }
+                _ => out.replace(real.as_str(), fake),
+            };
         }
         out
     }
@@ -521,6 +530,28 @@ impl Scrubber {
         }
         found
     }
+}
+
+/// Replaces `real` with `fake` where it is not glued to a letter, a digit
+/// or `_` on either side.
+fn replace_whole_words(text: &str, real: &str, fake: &str) -> String {
+    let is_word = |c: Option<char>| c.is_some_and(|c| c.is_alphanumeric() || c == '_');
+    let mut out = String::with_capacity(text.len());
+    let mut last = 0;
+    for (start, _) in text.match_indices(real) {
+        let end = start + real.len();
+        if start < last
+            || is_word(text[..start].chars().next_back())
+            || is_word(text[end..].chars().next())
+        {
+            continue;
+        }
+        out.push_str(&text[last..start]);
+        out.push_str(fake);
+        last = end;
+    }
+    out.push_str(&text[last..]);
+    out
 }
 
 fn find_all(regex: &Regex, text: &str) -> Vec<String> {
@@ -778,6 +809,25 @@ mod tests {
             doc["a_self"],
             "/api/accounts/00000000-0000-4000-8000-000000000001"
         );
+    }
+
+    #[test]
+    fn mapped_names_are_replaced_as_whole_words_only() {
+        let mut s = Scrubber::new().unwrap();
+        let mut doc = json!({
+            "accounts": [{"name": "LIVRET"}],
+            "product": "LIVRET_A",
+            "kind": "LIVRETS",
+            "note": "transfer to LIVRET, monthly",
+            "LIVRET_B": 1
+        });
+        s.scrub_json(&mut doc);
+        let fake = doc["accounts"][0]["name"].as_str().unwrap().to_owned();
+        assert_ne!(fake, "LIVRET");
+        assert_eq!(doc["product"], "LIVRET_A");
+        assert_eq!(doc["kind"], "LIVRETS");
+        assert_eq!(doc["note"], format!("transfer to {fake}, monthly"));
+        assert_eq!(doc["LIVRET_B"], 1);
     }
 
     #[test]

@@ -159,7 +159,11 @@ impl FakeBank {
 
     /// `GET /api/session`. Never triggers an OTP, so it is safe in Unattended mode.
     async fn session_is_valid(&self, s: &SessionBlob) -> Result<bool, ConnectorError> {
-        if date(&Session::read(s)?.valid_until)? < self.clock.today() {
+        // An unreadable saved session is treated like an expired one.
+        let Ok(session) = Session::read(s) else {
+            return Ok(false);
+        };
+        if date(&session.valid_until)? < self.clock.today() {
             // Known to be expired: no need to ask the bank.
             return Ok(false);
         }

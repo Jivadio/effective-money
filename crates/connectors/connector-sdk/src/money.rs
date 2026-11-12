@@ -371,14 +371,22 @@ impl FromStr for Quantity {
         // Trailing zeros carry no value: drop them before they can overflow.
         let frac = frac.trim_end_matches('0');
         let scale = u32::try_from(frac.len()).map_err(|_| InvalidQuantity)?;
+        // Accumulate with the final sign so `i64::MIN` itself is accepted.
         let mut mantissa: i64 = 0;
         for b in int.bytes().chain(frac.bytes()) {
+            let digit = i64::from(b - b'0');
             mantissa = mantissa
                 .checked_mul(10)
-                .and_then(|m| m.checked_add(i64::from(b - b'0')))
+                .and_then(|m| {
+                    if negative {
+                        m.checked_sub(digit)
+                    } else {
+                        m.checked_add(digit)
+                    }
+                })
                 .ok_or(InvalidQuantity)?;
         }
-        Self::new(if negative { -mantissa } else { mantissa }, scale)
+        Self::new(mantissa, scale)
     }
 }
 
@@ -453,6 +461,11 @@ mod tests {
             Some(i64::MAX)
         );
         assert_eq!(Currency::EUR.parse_minor("92233720368547758.08"), None);
+        assert_eq!(
+            Currency::EUR.parse_minor("-92233720368547758.08"),
+            Some(i64::MIN)
+        );
+        assert_eq!(Currency::EUR.parse_minor("-92233720368547758.09"), None);
         assert_eq!(Currency::EUR.parse_minor("92233720368547759"), None);
         assert_eq!(Currency::EUR.parse_minor("1,5"), None);
     }

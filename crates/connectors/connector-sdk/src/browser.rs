@@ -24,7 +24,7 @@
 //!         Box::pin(async move {
 //!             s.run(&[
 //!                 Action::goto("https://bank.invalid/login"),
-//!                 Action::fill("#user", "jane.doe"),
+//!                 Action::fill_secret("#user", "jane.doe"), // personal data
 //!                 Action::fill_secret("#password", "not-a-real-password"),
 //!                 Action::click("button[type=submit]"),
 //!                 Action::wait_for("#dashboard", Duration::from_secs(15)),

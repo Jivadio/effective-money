@@ -449,7 +449,8 @@ pub fn assert_sends_nothing(report: &UnattendedReport) {
 }
 
 /// Panics unless every booked transaction has a `remote_id` and all ids are
-/// unique.
+/// unique. Pass ONE account's transactions: ids only need to be unique within
+/// an account (the engine keys them on `(account, remote_id)`).
 pub fn assert_unique_ids(transactions: &[RemoteTransaction]) {
     let mut seen = BTreeMap::new();
     for tx in transactions {
@@ -469,7 +470,8 @@ pub fn assert_unique_ids(transactions: &[RemoteTransaction]) {
 
 /// Panics unless at least `min_groups` groups of identical BOOKED
 /// transactions (same day, amount, currency and label) exist, each member
-/// with its own id.
+/// with its own id. Pass ONE account's transactions, as for
+/// [`assert_unique_ids`].
 pub fn assert_twins_preserved(transactions: &[RemoteTransaction], min_groups: usize) {
     assert_unique_ids(transactions);
     let mut groups: BTreeMap<(NaiveDate, i64, String, String), usize> = BTreeMap::new();

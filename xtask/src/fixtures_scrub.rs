@@ -10,9 +10,14 @@
 //!   (`@`, `%40`, `&#64;`);
 //! - a French or international (E.164) phone number;
 //! - a JWT, a long opaque token, or a base64 blob;
-//! - any value under a secret key (`otp`, `code`, `sid`, `pin`, `*token*`,
-//!   `*session*`, `*password*`, `*secret*`), however short, unless it is
-//!   `SCRUBBED`, empty, or the test canary.
+//! - any value under a secret key (`otp`, `code`, `sid`, `pin`, `passcode`,
+//!   `*token*`, `*session*`, `*password*`, `*secret*`, `*cookie*`,
+//!   `*authorization*`...), however short, unless it is `SCRUBBED`, empty, or
+//!   the test canary. Cookies are checked per cookie (`name=SCRUBBED`, as the
+//!   recorder writes them). JSON fixtures are parsed, so this covers numbers
+//!   (only `0`, the scrubber's output, passes), nested values and values on
+//!   another line than their key; booleans and `null` carry no secret.
+//!   Files that are not valid JSON are checked line by line.
 //!
 //! It is a safety net, not a proof: fixtures are still reviewed by hand.
 
@@ -33,7 +38,7 @@ const PHONE: &str = r"(?:\+33 ?|\b0)[1-9](?:[ .-]?[0-9]{2}){4}\b|\+[1-9][0-9]{7,
 const TOKEN: &str = r"[A-Za-z0-9_-]{24,}";
 const BASE64: &str = r"[A-Za-z0-9+/]{20,}={0,2}";
 const UUID: &str = r"^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$";
-const JSON_PAIR: &str = r#""([A-Za-z0-9_.-]+)"\s*:\s*"([^"]*)""#;
+const JSON_PAIR: &str = r#""([A-Za-z0-9_.-]+)"\s*:\s*(?:"([^"]*)"|(-?[0-9][0-9.eE+-]*))"#;
 const QUERY_PAIR: &str = r#"[?&]([A-Za-z0-9_.-]+)=([^&"\s#]*)"#;
 
 /// Public test card numbers (Visa, Mastercard, Amex test PANs).
@@ -47,8 +52,22 @@ const TEST_CARDS: &[&str] = &[
 const EXAMPLE_DOMAINS: &[&str] = &["example.com", "example.org", "example.net"];
 const EXAMPLE_TLDS: &[&str] = &[".invalid", ".test", ".example", ".localhost"];
 
-const SECRET_KEYS_EXACT: &[&str] = &["otp", "code", "sid", "pin", "pass", "jwt"];
-const SECRET_KEYS_PART: &[&str] = &["token", "session", "password", "passwd", "secret", "apikey"];
+const SECRET_KEYS_EXACT: &[&str] = &[
+    "otp", "otpcode", "smscode", "code", "sid", "pin", "pincode", "pass", "jwt", "auth", "tan",
+    "cvv", "cvc",
+];
+const SECRET_KEYS_PART: &[&str] = &[
+    "token",
+    "session",
+    "password",
+    "passwd",
+    "passcode",
+    "secret",
+    "apikey",
+    "cookie",
+    "authorization",
+    "credential",
+];
 
 pub struct Patterns {
     iban: Regex,
@@ -82,8 +101,9 @@ impl Patterns {
     }
 
     /// What looks sensitive in `text` (one line), as kinds. Matches are not
-    /// returned: they may be real data.
-    pub fn findings(&self, text: &str) -> Vec<&'static str> {
+    /// returned: they may be real data. `json_pairs = false` leaves
+    /// `"key": value` pairs to [`json_secret_findings`] (parsed JSON files).
+    pub fn findings(&self, text: &str, json_pairs: bool) -> Vec<&'static str> {
         let mut out = Vec::new();
         for m in self.iban.find_iter(text) {
             if !is_fake_iban(m.as_str()) && iban_checksum_ok(m.as_str()) {
@@ -138,17 +158,18 @@ impl Patterns {
                 out.push("base64 blob");
             }
         }
-        for caps in self
-            .json_pair
-            .captures_iter(text)
-            .chain(self.query_pair.captures_iter(text))
-        {
-            let (key, value) = (&caps[1], &caps[2]);
-            if is_secret_key(key)
-                && !value.is_empty()
-                && value != "SCRUBBED"
-                && !value.contains(CANARY)
-            {
+        let pairs = json_pairs
+            .then(|| self.json_pair.captures_iter(text))
+            .into_iter()
+            .flatten();
+        for caps in pairs.chain(self.query_pair.captures_iter(text)) {
+            let key = &caps[1];
+            let ok = match (caps.get(2), caps.get(3)) {
+                (_, Some(number)) => number.as_str().parse::<f64>().is_ok_and(|n| n == 0.0),
+                (Some(value), _) => secret_text_ok(key, value.as_str()),
+                (None, None) => true,
+            };
+            if is_secret_key(key) && !ok {
                 out.push("value under a secret key");
             }
         }
@@ -182,6 +203,45 @@ fn is_secret_key(key: &str) -> bool {
         .map(|c| c.to_ascii_lowercase())
         .collect();
     SECRET_KEYS_EXACT.contains(&key.as_str()) || SECRET_KEYS_PART.iter().any(|p| key.contains(p))
+}
+
+/// A string allowed under the secret key `key`: empty, `SCRUBBED` or the
+/// canary; for cookies, each cookie value (`SID=SCRUBBED; Path=/`).
+fn secret_text_ok(key: &str, value: &str) -> bool {
+    let plain_ok = |v: &str| v.is_empty() || v == "SCRUBBED" || v.contains(CANARY);
+    if plain_ok(value) {
+        return true;
+    }
+    let key = key.to_ascii_lowercase();
+    if !key.contains("cookie") {
+        return false;
+    }
+    // `set-cookie`: one cookie, then attributes; `cookie`: `a=1; b=2`.
+    let cookies: Vec<&str> = if key.contains("set") {
+        value.split(';').take(1).collect()
+    } else {
+        value.split(';').collect()
+    };
+    cookies
+        .iter()
+        .all(|c| c.split_once('=').is_some_and(|(_, v)| plain_ok(v.trim())))
+}
+
+/// How many values sit under a secret key in a parsed JSON document without
+/// being scrubbed, whatever their type or depth. `secret` is the secret key
+/// an ancestor of `value` was found under.
+fn json_secret_findings(value: &serde_json::Value, secret: Option<&str>) -> usize {
+    use serde_json::Value;
+    match (value, secret) {
+        (Value::Object(map), _) => map
+            .iter()
+            .map(|(k, v)| json_secret_findings(v, secret.or(is_secret_key(k).then_some(k))))
+            .sum(),
+        (Value::Array(items), _) => items.iter().map(|v| json_secret_findings(v, secret)).sum(),
+        (Value::String(s), Some(key)) => usize::from(!secret_text_ok(key, s)),
+        (Value::Number(n), Some(_)) => usize::from(n.as_f64() != Some(0.0)),
+        _ => 0,
+    }
 }
 
 /// The documented fakes: `FR76` then only digits, starting with zeros.
@@ -304,9 +364,14 @@ fn fixture_files(root: &Path) -> Vec<PathBuf> {
             };
             for entry in entries.flatten() {
                 let path = entry.path();
-                if path.is_dir() {
+                // `file_type` does not follow symlinks: a directory symlink
+                // (`loop -> ..`) is skipped, symlinked files are scanned.
+                let Ok(kind) = entry.file_type() else {
+                    continue;
+                };
+                if kind.is_dir() {
                     stack.push(path);
-                } else {
+                } else if !(kind.is_symlink() && path.is_dir()) {
                     out.push(path);
                 }
             }
@@ -323,10 +388,21 @@ pub fn check(root: &Path) -> anyhow::Result<Vec<String>> {
         let text =
             std::fs::read(&file).with_context(|| format!("cannot read {}", file.display()))?;
         let text = String::from_utf8_lossy(&text);
+        // JSON is parsed so the secret-key rule sees every value, whatever its
+        // type, depth or line; other files are checked line by line only.
+        let json = serde_json::from_str::<serde_json::Value>(&text).ok();
         for (i, line) in text.lines().enumerate() {
-            for kind in patterns.findings(line) {
+            for kind in patterns.findings(line, json.is_none()) {
                 // The match itself is not printed: it may be real data.
                 violations.push(format!("{}:{}: looks like a {kind}", file.display(), i + 1));
+            }
+        }
+        if let Some(json) = json {
+            for _ in 0..json_secret_findings(&json, None) {
+                violations.push(format!(
+                    "{}: looks like a value under a secret key",
+                    file.display()
+                ));
             }
         }
     }
@@ -353,7 +429,7 @@ mod tests {
     use super::*;
 
     fn kinds(text: &str) -> Vec<&'static str> {
-        Patterns::new().unwrap().findings(text)
+        Patterns::new().unwrap().findings(text, true)
     }
 
     #[test]
@@ -368,6 +444,7 @@ mod tests {
             r#""path": "/api/accounts/CHK-001/transactions", "type": "application/json""#,
             r#""date": "2026-01-14", "amount": "-12.50", "isin": "XX0000000001""#,
             r#""currency_code": "EUR", "challenge_id": "challenge-0001", "fake": "TOKEN0001""#,
+            r#""pin": 0, "set-cookie": "SID=SCRUBBED; Path=/", "cookie": "a=SCRUBBED; b=""#,
         ] {
             assert_eq!(kinds(ok), Vec::<&str>::new(), "{ok}");
         }
@@ -393,11 +470,76 @@ mod tests {
             (r#""otp": "123456""#, "value under a secret key"),
             (r#""sessionId": "s1""#, "value under a secret key"),
             ("/cb?code=abc&state=x", "value under a secret key"),
+            (r#""pin": 1234"#, "value under a secret key"),
+            (
+                r#""authorization": "Basic dXNlcjpwYXNz""#,
+                "value under a secret key",
+            ),
+            (
+                r#""set-cookie": "SID=abc123; Path=/""#,
+                "value under a secret key",
+            ),
+            (r#""passcode": "1234""#, "value under a secret key"),
         ];
         assert!(luhn_valid("4970101234567893"));
         for (text, kind) in cases {
             assert!(kinds(text).contains(kind), "{text}: {:?}", kinds(text));
         }
+    }
+
+    fn json_findings(text: &str) -> usize {
+        json_secret_findings(&serde_json::from_str(text).unwrap(), None)
+    }
+
+    #[test]
+    fn parsed_json_checks_every_value_under_a_secret_key() {
+        for (text, expected) in [
+            (r#"{"pin": 1234}"#, 1),
+            (r#"{"otp": 12.5, "code": -1}"#, 2),
+            ("{\"password\":\n  \"hunter2\"}", 1),
+            (r#"{"session": {"id": "s-1", "user": {"n": 42}}}"#, 2),
+            (r#"{"headers": {"authorization": "Basic dXNlcjpwYXNz"}}"#, 1),
+            (
+                r#"{"set-cookie": ["SID=abc; Path=/", "lang=SCRUBBED; Path=/"]}"#,
+                1,
+            ),
+            (r#"{"cookie": "a=SCRUBBED; b=real"}"#, 1),
+            (r#"{"credentials": ["x"]}"#, 1),
+            // Scrubbed, empty, canary, zero, booleans and null pass.
+            (
+                r#"{"pin": 0, "otp": "SCRUBBED", "code": "", "token": "tok-CANARY-7f3a9c",
+                    "session": {"active": true, "expires": null},
+                    "set-cookie": ["SID=SCRUBBED; Path=/"], "amount": 1234}"#,
+                0,
+            ),
+        ] {
+            assert_eq!(json_findings(text), expected, "{text}");
+        }
+    }
+
+    #[test]
+    fn parsed_json_and_symlinks_in_check() {
+        let root =
+            std::env::temp_dir().join(format!("solde-fixtures-scrub-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        let fixtures = root.join("crates/connectors/demo/fixtures");
+        std::fs::create_dir_all(&fixtures).unwrap();
+        std::fs::write(fixtures.join("a.json"), "{\n  \"pin\":\n    1234\n}\n").unwrap();
+        std::fs::write(fixtures.join("b.txt"), "\"pin\": 1234\n").unwrap();
+        #[cfg(unix)]
+        std::os::unix::fs::symlink("..", fixtures.join("loop")).unwrap();
+        let files = fixture_files(&root);
+        let violations = check(&root);
+        let _ = std::fs::remove_dir_all(&root);
+        // The directory symlink is not followed.
+        assert_eq!(files.len(), 2, "{files:?}");
+        let violations = violations.unwrap();
+        assert_eq!(violations.len(), 2, "{violations:?}");
+        assert!(
+            violations
+                .iter()
+                .all(|v| v.ends_with("value under a secret key"))
+        );
     }
 
     #[test]

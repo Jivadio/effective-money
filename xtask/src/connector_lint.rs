@@ -89,10 +89,15 @@ fn normalize(source: &str) -> Normalized {
             out.push(' ');
             continue;
         }
-        // Raw strings: r"..", r#".."#, br#".."#.
+        // Raw strings: r"..", r#".."#, and the byte/C forms br#".."#, cr#".."#
+        // (whose `b`/`c` prefix was already copied to `out`).
+        let is_word = |p: char| p.is_alphanumeric() || p == '_';
+        let before_prefix = out
+            .strip_suffix(['b', 'c'])
+            .filter(|rest| !rest.ends_with(is_word));
         if c == 'r'
             && matches!(next, Some('"' | '#'))
-            && !out.ends_with(|p: char| p.is_alphanumeric() || p == '_')
+            && (!out.ends_with(is_word) || before_prefix.is_some())
         {
             let mut j = i + 1;
             let mut hashes = 0;
@@ -219,23 +224,50 @@ fn check_source(source: &str, in_tests: bool) -> Vec<String> {
         let stmt = &spaced[i..spaced[i..].find(';').map_or(spaced.len(), |e| i + e)];
         let compact: String = stmt.chars().filter(|c| !c.is_whitespace()).collect();
         let path = compact.trim_start_matches("use").trim_start_matches("::");
-        if !path.starts_with("std") {
-            continue;
-        }
-        let alias_of_std = path.starts_with("stdas") || compact.contains("selfas");
-        let module = ["process", "env", "os", "fs"].iter().any(|m| {
-            path.starts_with("std::{")
-                && compact
-                    .split(|c: char| !c.is_alphanumeric() && c != '_')
-                    .any(|w| w == *m)
-        });
-        if alias_of_std || module {
-            v.push(format!("`{stmt}` aliases std or a forbidden module"));
+        // `use {std as s, std::fmt};` imports several roots at once.
+        for member in root_members(path) {
+            let member = member.trim_start_matches("::");
+            if !member.starts_with("std") {
+                continue;
+            }
+            let alias_of_std = member.starts_with("stdas") || member.contains("selfas");
+            let module = ["process", "env", "os", "fs"].iter().any(|m| {
+                member.starts_with("std::{")
+                    && member
+                        .split(|c: char| !c.is_alphanumeric() && c != '_')
+                        .any(|w| w == *m)
+            });
+            if alias_of_std || module {
+                v.push(format!("`{stmt}` aliases std or a forbidden module"));
+            }
         }
     }
     v.sort();
     v.dedup();
     v
+}
+
+/// The top-level paths of a compact `use` tree: `{a,b::{c,d}}` gives `a` and
+/// `b::{c,d}`; a path without a leading group is returned as is.
+fn root_members(path: &str) -> Vec<&str> {
+    let Some(inner) = path.strip_prefix('{').and_then(|p| p.strip_suffix('}')) else {
+        return vec![path];
+    };
+    let mut members = Vec::new();
+    let (mut depth, mut start) = (0_usize, 0);
+    for (i, c) in inner.char_indices() {
+        match c {
+            '{' => depth += 1,
+            '}' => depth = depth.saturating_sub(1),
+            ',' if depth == 0 => {
+                members.extend(root_members(&inner[start..i]));
+                start = i + 1;
+            }
+            _ => {}
+        }
+    }
+    members.extend(root_members(&inner[start..]));
+    members
 }
 
 /// Every violation of the bank connector crate at `dir` (empty = OK).
@@ -574,6 +606,9 @@ mod tests {
             "use std::{env::var, io};",
             "use std::{fs, io};",
             "use std::{os::unix, io};",
+            "use {std as s, std::fmt}; fn f() { s::process::exit(1) }",
+            "use ::{std as s};",
+            "use {core::fmt, std::{io, env}};",
         ] {
             assert!(
                 !check_source(source, false).is_empty(),
@@ -592,6 +627,9 @@ mod tests {
             "/* #![allow(warnings)] */ fn f() {}",
             "const S: &str = \"std::process\";",
             "const R: &str = r#\"std::env \"quoted\"\"#;",
+            "const B: &[u8] = br#\"say \"std::env\" now\"#;",
+            "const C: &[u8] = br\"std::process\";",
+            "use {core::fmt, std::io};",
             "fn f<'a>(x: &'a str) -> char { '\\'' }",
             "use std::{collections::BTreeMap, io};",
             "#[allow(dead_code)] fn f() {}",

@@ -35,7 +35,8 @@ pub const SYNTHETIC_PREFIX: &str = "syn1:";
 /// Fills `remote_id` for booked transactions that have none (see the
 /// [module docs](self)).
 ///
-/// - Transactions with a bank id are kept unchanged.
+/// - Transactions with a bank id are kept unchanged. An empty or
+///   whitespace-only id counts as missing.
 /// - Pending transactions without a bank id are kept with `remote_id = None`
 ///   (see the [module docs](self)).
 /// - Booked transactions without a bank id dated after `last_complete_day`
@@ -50,6 +51,13 @@ pub fn synthesize_remote_ids(
     transactions
         .into_iter()
         .filter_map(|mut tx| {
+            if tx
+                .remote_id
+                .as_deref()
+                .is_some_and(|id| id.trim().is_empty())
+            {
+                tx.remote_id = None;
+            }
             if tx.remote_id.is_some() || tx.status == TransactionStatus::Pending {
                 return Some(tx);
             }
@@ -130,6 +138,20 @@ mod tests {
         assert_ne!(a, c);
         // Deterministic across runs.
         assert_eq!(synthesize_remote_ids(input, day(15)), out);
+    }
+
+    #[test]
+    fn blank_bank_ids_get_distinct_synthetic_ids() {
+        use TransactionStatus::Booked;
+        let mut blank = tx(14, -350, "COFFEE", Booked);
+        blank.remote_id = Some(" ".to_owned());
+        let out = synthesize_remote_ids(vec![blank.clone(), blank], day(15));
+        let (a, b) = (
+            out[0].remote_id.clone().unwrap(),
+            out[1].remote_id.clone().unwrap(),
+        );
+        assert!(a.starts_with(SYNTHETIC_PREFIX), "{a}");
+        assert_ne!(a, b);
     }
 
     #[test]

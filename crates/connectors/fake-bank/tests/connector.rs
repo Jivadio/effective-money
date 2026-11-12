@@ -103,7 +103,10 @@ fn full_replay() {
             .count(),
         1
     );
-    assert_unique_ids(&run.all_transactions());
+    // Ids only need to be unique within one account.
+    for transactions in run.transactions.values() {
+        assert_unique_ids(transactions);
+    }
 
     let positions = &run.positions[&RemoteAccountId::new("INV-001")];
     assert_eq!(positions.len(), 2);
@@ -114,7 +117,9 @@ fn full_replay() {
 #[test]
 fn twins_preserved() {
     let run = interactive_sync(&["day1"], day1());
-    assert_twins_preserved(&run.all_transactions(), 1);
+    // Twins and ids are checked per account.
+    let checking = &run.transactions[&RemoteAccountId::new("CHK-001")];
+    assert_twins_preserved(checking, 1);
 }
 
 #[test]
@@ -175,6 +180,28 @@ fn unattended_reuses_a_valid_session() {
     let blob = report.result.ok().unwrap();
     assert_eq!(blob.expose(), session("2026-04-15").expose());
     assert_eq!(report.requests, [req(Method::Get, "/api/session")]);
+}
+
+#[test]
+fn unreadable_session_is_treated_as_expired() {
+    let garbage = || SessionBlob::new(b"not json".to_vec());
+    // Unattended: ScaRequired, nothing sent.
+    let (bank, http) = fake_bank(&["day1"], day1());
+    let report = block_on(login_unattended(&bank, &http, Some(garbage())));
+    assert_eq!(report.result.err(), Some(ConnectorError::ScaRequired));
+    // Interactive: straight to the full login, no session check.
+    let (bank, http) = fake_bank(&["day1"], day1());
+    let io = ScriptedInteraction::new(vec![Scripted::Code("123456".to_owned())]);
+    let r = block_on(bank.login(&interactive(&io, creds()), Some(garbage())));
+    assert!(r.is_ok());
+    assert_eq!(io.count(), 1);
+    assert_eq!(
+        http.requests(),
+        [
+            req(Method::Post, "/api/login"),
+            req(Method::Post, "/api/login/otp")
+        ]
+    );
 }
 
 #[test]
