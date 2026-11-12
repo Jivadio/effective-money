@@ -122,14 +122,14 @@ checksum = "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
 
 [[package]]
 name = "em-analytics"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "em-core-domain",
 ]
 
 [[package]]
 name = "em-api"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "em-services",
  "em-sync-facade",
@@ -137,42 +137,42 @@ dependencies = [
 
 [[package]]
 name = "em-categorization"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "em-core-domain",
 ]
 
 [[package]]
 name = "em-connector-banque-populaire"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "em-connector-sdk",
 ]
 
 [[package]]
 name = "em-connector-banque-postale"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "em-connector-sdk",
 ]
 
 [[package]]
 name = "em-connector-enable-banking"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "em-connector-sdk",
 ]
 
 [[package]]
 name = "em-connector-fake-bank"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "em-connector-sdk",
 ]
 
 [[package]]
 name = "em-connector-registry"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "em-connector-banque-populaire",
  "em-connector-banque-postale",
@@ -184,22 +184,22 @@ dependencies = [
 
 [[package]]
 name = "em-connector-sdk"
-version = "0.0.0"
+version = "0.1.0"
 
 [[package]]
 name = "em-connector-trade-republic"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "em-connector-sdk",
 ]
 
 [[package]]
 name = "em-core-domain"
-version = "0.0.0"
+version = "0.1.0"
 
 [[package]]
 name = "em-mcp"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "em-services",
  "em-sync-facade",
@@ -207,18 +207,18 @@ dependencies = [
 
 [[package]]
 name = "em-pricing"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "em-core-domain",
 ]
 
 [[package]]
 name = "em-secrets"
-version = "0.0.0"
+version = "0.1.0"
 
 [[package]]
 name = "em-server"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -236,7 +236,7 @@ dependencies = [
 
 [[package]]
 name = "em-services"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "em-analytics",
  "em-categorization",
@@ -247,14 +247,14 @@ dependencies = [
 
 [[package]]
 name = "em-storage"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "em-core-domain",
 ]
 
 [[package]]
 name = "em-sync"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "em-connector-registry",
  "em-pricing",
@@ -265,7 +265,7 @@ dependencies = [
 
 [[package]]
 name = "em-sync-facade"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "em-services",
 ]
@@ -936,7 +936,7 @@ checksum = "8c3b93199df0ab874cdf0c6a94f0a0dc3423fe41f1cafb62b8bd7b1deb277aef"
 
 [[package]]
 name = "xtask"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "cargo_metadata",
