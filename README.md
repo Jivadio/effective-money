@@ -86,4 +86,4 @@ Direct connectors use private, undocumented bank APIs. We are not affiliated wit
 
 ## Come and help!
 
-Whether you write Rust or TypeScript, own a bank account we should support, can improve the docs, or just have an idea: you're very welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md); a small issue or PR is a great start. Found a security problem? See [SECURITY.md](SECURITY.md).
+Whether you write Rust or TypeScript, own a bank account we should support, can improve the docs, or just have an idea: you're very welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md) (and [DESIGN.md](DESIGN.md) for anything visual); a small issue or PR is a great start. Found a security problem? See [SECURITY.md](SECURITY.md).

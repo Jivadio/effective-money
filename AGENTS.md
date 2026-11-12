@@ -14,7 +14,7 @@ effective-money is an open-source, self-hostable personal finance app for a hous
 - `crates/secrets` master key and credential vault. `crates/sync` sync engine, the only user of `secrets`. `crates/sync-facade` narrow interface to `sync` for API/MCP.
 - `crates/api` REST API. `crates/mcp` MCP server.
 - `crates/connectors/*` bank connectors: `connector-sdk`, `registry`, `fake-bank`, `enable-banking`, `trade-republic`, `banque-populaire`, `banque-postale`. Allowed third-party crates: `crates/connectors/allowed-deps.toml`.
-- `apps/server` the binary (`em-server`). `apps/web` Vite + React + TypeScript SPA.
+- `apps/server` the binary (`em-server`). `apps/web` Vite + React + TypeScript SPA. UI work follows `DESIGN.md` (tokens, components, voice, EFIGS localization).
 - `xtask` repo automation (`cargo xtask ...`). `supply-chain/` cargo-vet data. `docs/` documentation and decision records.
 
 ## Commands
@@ -68,6 +68,7 @@ Toolchain is pinned in `rust-toolchain.toml`; pnpm in the root `package.json`. C
 - Do not edit lockfiles or generated files by hand; use the tools. Do not add a dependency without saying why in the PR.
 - Do not edit the changelog by hand for releases: release-please builds it from commits.
 - Docs and comments are in English, with a welcoming tone.
+- UI: use the `DESIGN.md` tokens (never hard-coded colours or sizes). All copy comes from translation catalogues; the app ships in English, French, Italian, German and Spanish, and amounts and dates are formatted by the user's locale.
 
 ## Before you finish
 
