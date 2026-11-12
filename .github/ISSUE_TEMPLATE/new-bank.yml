@@ -1,0 +1,49 @@
+name: New bank request
+description: Tell us which bank you'd like to see supported
+labels: ["new-bank"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a bank! One important thing: **please never paste passwords, PINs, tokens, cookies, IBANs or real account data in this issue.** Issues are public and permanent, and we don't need any of that to get started.
+  - type: input
+    id: bank
+    attributes:
+      label: Bank
+    validations:
+      required: true
+  - type: input
+    id: country
+    attributes:
+      label: Country
+  - type: dropdown
+    id: eb
+    attributes:
+      label: Is it available through Enable Banking? (if you know)
+      options:
+        - "Yes"
+        - "No"
+        - Not sure
+  - type: dropdown
+    id: sca
+    attributes:
+      label: How do you confirm logins and payments (2FA)?
+      options:
+        - SMS OTP
+        - Mobile app confirmation
+        - Hardware token
+        - Other
+        - Not sure
+  - type: dropdown
+    id: volunteer
+    attributes:
+      label: Could you be this connector's buddy? (an occasional check on your own account, we'll help)
+      options:
+        - "Yes"
+        - "No"
+        - Maybe, I'd need some guidance
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Anything that might help, minus the secrets.

@@ -1,0 +1,38 @@
+name: Bug report
+description: Something isn't working the way you'd expect
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping us squash bugs! One heads-up: please blank out credentials, tokens, IBANs and real transactions in anything you paste, since issues are public.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Tell us what you saw and what you expected. Rough notes are fine.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce (if you know them)
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit (if you know it)
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: How are you running it?
+      options:
+        - Docker (Postgres)
+        - Docker (SQLite)
+        - Desktop (remote mode)
+        - Desktop (local mode)
+        - From source
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs (with secrets blanked out)
+      render: text
