@@ -1,0 +1,5 @@
+# The helper's own dependency tree, so the Rust and SPA builds stay untouched.
+node_modules
+dist
+tests
+*.log
