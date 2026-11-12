@@ -19,3 +19,7 @@ dist/
 /data/
 /keys/
 spikes/**/recordings/raw/
+
+# Conflict copies created by iCloud/Finder sync (e.g. "Cargo 2.toml")
+* 2
+* 2.*
