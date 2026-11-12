@@ -12,3 +12,5 @@ We are at the very start. Pages marked "planned" describe where we are heading, 
 ## For maintainers
 
 Automated PR reviews use CodeRabbit; its configuration is in [`.coderabbit.yaml`](../.coderabbit.yaml). Installing the CodeRabbit GitHub App on the repository is a maintainer action.
+
+Releases are prepared by release-please, which runs with a token from a dedicated GitHub App (the default Actions token is not allowed to open pull requests here). The app needs read and write access to Contents, Pull requests and Issues on this repository only. Its Client ID goes in the `RELEASE_APP_CLIENT_ID` repository variable and its private key in the `RELEASE_APP_PRIVATE_KEY` secret. Until both are set, the release job is skipped.
