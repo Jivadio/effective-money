@@ -63,8 +63,10 @@ The form carries:
   (`iscdName`). A plain HTTP client cannot reproduce it (see § 5).
 
 The UI contract derived from this: the connector shows the ten digit labels
-and receives back the clicked **positions** (six integers, `0`–`9`). The
-digits themselves never leave the browser.
+and receives back the clicked **positions** (six integers, `0`–`9`). Labels
+and positions **together reveal the password** (the server maps positions
+back to digits with the per-load keypad): both are sensitive, never logged,
+echoed or persisted. Only the encrypted cookie session is kept.
 
 ## 3. Authentication POST
 
@@ -250,7 +252,7 @@ All `GET` on the bank origin, plain HTTP with the session cookies:
 |---|---|
 | `403` on the entry point (§ 1), or any WAF/SSO block before credentials are sent | `Network` (upstream blocked; never `AuthFailed` — the credentials were not judged) |
 | Wrong identifier or keypad positions: auth POST answers `401/403`, or `200` re-rendering the login form, or `message.html?param=0x132120c8` | `AuthFailed` |
-| `message.html` with any other `param` | `Network` (upstream refused the login without judging credentials) |
+| `message.html` with any `param` other than `AuthentInfoAF` and `0x132120c8` | `Network` (upstream refused the login without judging credentials) |
 | Session probe redirected to login | `SessionExpired` |
 | Challenge required but mode is `Unattended` | `ScaRequired` (send nothing) |
 | Approval wait expires / user declines | `ChallengeTimeout` / cancelled |
@@ -275,7 +277,8 @@ All `GET` on the bank origin, plain HTTP with the session cookies:
   `Chosen(usize)` — **[design point for T5]**: either six sequential `Choice`
   challenges (one per key press, options = the ten labels) or a new
   challenge kind proposed to the maintainer (the SDK enum is
-  `#[non_exhaustive]`). In `Unattended` mode every challenge resolves to
+  `#[non_exhaustive]`). Either way, labels and chosen positions are sensitive
+  (see § 2) and must never reach logs or errors. In `Unattended` mode every challenge resolves to
   « not allowed ».
 
 ## 13. Known limits
