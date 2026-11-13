@@ -574,12 +574,13 @@ connector can show the case is vanishingly rare — not the other way round.
   should never be reachable in Unattended mode anyway, but marking it costs
   nothing and protects against a refactor.
 - **`valid_until` is an upper bound, not a guarantee.** Enable Banking has a
-  dedicated FAQ entry — "Why does the API return `EXPIREDSESSION` when the
-  session has `validuntil` in the future?" — so a live session can stop working
-  before the stored date. Note the vendor's own spelling is inconsistent: the
-  FAQ heading writes `EXPIREDSESSION`/`validuntil`, while the error code to match
-  on is **`EXPIRED_SESSION`** (`ErrorCode` in the API reference, and the other
-  five FAQ answers spell it that way). The connector must match `EXPIRED_SESSION`
+  dedicated FAQ entry about the API returning an expired-session error while the
+  session has a `valid_until` in the future, so a live session can stop working
+  before the stored date. The exact spelling of that FAQ heading is **[to
+  confirm]** (it was transcribed as `EXPIREDSESSION`/`validuntil`, which looks
+  like a rendering artefact); the error code to match on is **`EXPIRED_SESSION`**
+  (`ErrorCode` in the API reference, and the other FAQ answers spell it that
+  way). The connector must match `EXPIRED_SESSION`
   and map it to `SessionExpired`, letting the sync engine fall back to
   `needs_user_action`; the stored expiry only lets `Unattended` refuse *without*
   a request, it does not entitle it to assume the session is alive.
