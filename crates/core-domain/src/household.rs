@@ -267,7 +267,7 @@ pub struct Transaction {
     pub category_source: CategorySource,
 }
 
-/// Upper-cases and strips whitespace so `"FR76 3000 …"` and `"fr763000…"`
+/// Upper-cases and strips whitespace so `"FR76 0000 …"` and `"fr760000…"`
 /// compare equal. Not a validity check: any string normalizes to something.
 pub fn normalize_iban(raw: &str) -> String {
     raw.chars()
@@ -415,7 +415,7 @@ mod tests {
         let home = HouseholdId::from_u128(1);
         let checking = AccountIdentity::for_account(
             home,
-            Some("FR76 3000 4028 3798 7654 3210 985"),
+            Some("FR76 0000 0000 0000 0000 0000 123"),
             "lbp",
             "x",
         );
@@ -423,12 +423,12 @@ mod tests {
             checking,
             AccountIdentity::Iban {
                 household_id: home,
-                iban: String::from("FR7630004028379876543210985"),
+                iban: String::from("FR7600000000000000000000123"),
             }
         );
         // Lowercase without spaces normalizes to the same identity.
         let sibling =
-            AccountIdentity::for_account(home, Some("fr7630004028379876543210985"), "other", "y");
+            AccountIdentity::for_account(home, Some("fr7600000000000000000000123"), "other", "y");
         assert_eq!(sibling, checking);
         // No (or blank) IBAN falls back to the bank key, institution normalized.
         assert_eq!(
