@@ -722,8 +722,9 @@ rest change details of the implementation or of the plan.
       available, with the total number of transactions seen, and report the ratio
       rather than a verdict. Be explicit about what the sample can and cannot
       prove: with *N* transactions and no hit, the 95% upper bound on the rate is
-      about 3/*N* (rule of three), so a few hundred transactions bound it at a
-      few per thousand at best — they can never show the case is absent. The
+      about 3/*N* (rule of three) — 300 transactions bound it at 10 per thousand,
+      and getting down to 1 per thousand takes roughly 3 000 — so a household's
+      sample can only rule out a frequent problem, never a rare one. The
       bound also assumes independent draws, and missing dates are almost
       certainly clustered — one bank's API change, one card scheme's export, one
       week of statements — so treat it as an order-of-magnitude hint per bank
