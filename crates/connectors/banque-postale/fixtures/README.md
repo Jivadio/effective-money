@@ -23,7 +23,10 @@ Two ways to combine the directories:
   every request key it defines; the base keeps the keys `X` does not override.
   A layer therefore **cannot** add a second response to a key the base already
   defines — that is why `challenge/` and `relogin/` carry two synthesis copies
-  themselves.
+  themselves. The overlays that replace the checking synthesis key
+  (`expired/`, `expired-form/`, `server-error/`, `cardless-synthesis/`,
+  `unknown-product/`) model a read with a **restored** session: no login runs
+  first, so the first synthesis request is the one they answer.
 - **Standalone**: `FixtureSet::from_dir("relogin")`, for a scenario that must
   not inherit the base (a re-login starts from a dead session).
 
@@ -48,13 +51,15 @@ covered.
 
 | Directory | How to load | Scenario |
 |---|---|---|
-| `login-ok/` | standalone | Trusted-device login (no push): entry redirect → login form → auth POST → `302` to `identif.ea` → home `302` to the checking synthesis. Three accounts (checking, Livret A, LEP), the checking statement with two identical `CARD PAYMENT BAKERY` rows on 13/10, a second statement page, both savings statements. |
+| `login-ok/` | standalone | Trusted-device login (no push): entry redirect → login form → auth POST → `302` to `identif.ea` → home `302` to the checking synthesis. Two synthesis copies, for the landing page and the later `accounts()` read. Three accounts (checking, Livret A, LEP), the checking statement with two identical `CARD PAYMENT BAKERY` rows on 13/10, a second statement page, both savings statements. |
 | `challenge/` | overlay | Untrusted-device login, approved: auth POST → notice page (`message.html?param=AuthentInfoAF`, Continuer target in a script variable) → waiting page with `PPH`/`URL_AF_POLLING` → the poll answers `200` (keep waiting), then `302` to the synthesis. Two synthesis copies, for the landing page and the later `accounts()` read. |
-| `refused/` | overlay | Same prelude, then the poll answers `302` to `message.html?param=AuthentAppRejected`, which is **answered** so the connector classifies the page → `ChallengeTimeout`. A `message.html` seen during authentication (§3) is an upstream refusal (`Network`); one seen while polling the approval (§4) means not approved. |
+| `refused/` | overlay | Same prelude, then the poll answers `302` to `message.html?param=AuthentAppRejected`, which is **answered** so the connector classifies the page → `ChallengeTimeout`. The same page reached from the auth POST (§3) would be an upstream refusal (`Network`, see `auth-param-other/`); reached while polling the approval (§4) it means not approved. |
 | `relogin/` | standalone | Trusted-device **re-login** after an expired session: the probe `302`s to the login form, then entry → form → auth `302` → home `302` → synthesis (two copies). This is the unattended re-login the maintainer decision in §3 is about. |
 | `expired/` | overlay | The saved session is dead: the synthesis probe answers `302` to the login form → `SessionExpired`. |
+| `expired-form/` | overlay | The other dead-session shape of §7: the synthesis probe answers `200` with a page containing the login form (`formAccesCompte`) → `SessionExpired`, never `Broken`. |
 | `auth-failed/` | overlay | Wrong identifier or code: the auth POST re-renders the login form with an error banner (`200`) → `AuthFailed`. |
 | `auth-param-refused/` | overlay | The auth POST answers `302` to `message.html?param=0x132120c8` → `AuthFailed` (§3, §11); the message page is answered too. |
+| `auth-param-other/` | overlay | The auth POST answers `302` to `message.html` with a `param` other than `AuthentInfoAF` and `0x132120c8` (fictional `0x00000001`) → `Network`, never `AuthFailed` (§3, §11); the message page is answered too. |
 | `entry-blocked/` | overlay | The entry point answers `403` (WAF/SSO) → `Network`, never `AuthFailed` (§1, §11). |
 | `server-error/` | overlay | The synthesis read answers `502` twice, so the single idempotent retry is served too (`02-…-retry.json` carries the same key and is served second) → `Network`. |
 | `savings-fallback/` | overlay | `init-releve_cne.ea` answers `404`, then `frame-releve_cne.ea` answers the table (§8 fallback). |

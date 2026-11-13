@@ -27,8 +27,10 @@ const SCENARIOS: &[(&str, usize)] = &[
     ("refused", 6),
     ("relogin", 5),
     ("expired", 1),
+    ("expired-form", 1),
     ("auth-failed", 3),
     ("auth-param-refused", 2),
+    ("auth-param-other", 2),
     ("entry-blocked", 1),
     ("server-error", 1),
     ("savings-fallback", 2),
@@ -68,6 +70,10 @@ fn overlays_load_on_top_of_login_ok() {
         "unknown-product",
         "entry-blocked",
         "auth-param-refused",
+        "auth-param-other",
+        "expired",
+        "expired-form",
+        "auth-failed",
     ] {
         let set = FixtureSet::from_dirs(&[fixtures_dir("login-ok"), fixtures_dir(overlay)])
             .unwrap_or_else(|err| panic!("overlay {overlay} does not load: {err}"));
