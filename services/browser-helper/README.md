@@ -178,7 +178,7 @@ export it: the server and the helper have to see the same value.
 export SOLDE_BROWSER_HELPER_TOKEN="$(node -e 'console.log(require("node:crypto").randomBytes(32).toString("hex"))')"
 # solde-server starts with that variable in its environment, then:
 docker build -t solde-browser-helper services/browser-helper
-docker run --rm --ipc=host \
+docker run --rm \
   --security-opt seccomp=./services/browser-helper/seccomp_profile.json \
   --network container:solde-server \
   -e SOLDE_BROWSER_HELPER_TOKEN solde-browser-helper
@@ -208,7 +208,6 @@ services:
     build: services/browser-helper
     image: solde-browser-helper
     network_mode: "service:solde-server"   # shares the server's loopback
-    ipc: host                              # Chromium needs more than 64 MiB of /dev/shm
     # Narrow grant for the sandbox: the profile shipped as
     # services/browser-helper/seccomp_profile.json (path relative to this file).
     security_opt:
@@ -225,13 +224,18 @@ server's loopback.
 Docker's default seccomp profile refuses the user namespaces it needs, so a
 bare `docker run` fails to launch the browser — the log says so, with a hint.
 The narrow grant is the profile shipped beside the service:
-`seccomp_profile.json` is Playwright's published profile for untrusted pages —
-Docker's default with one stanza allowing `clone`, `setns` and `unshare` for
-user namespaces — so the examples above pass it with
-`--security-opt seccomp=...` and keep every other filter. Playwright documents
-`--cap-add=SYS_ADMIN` only as a fallback when the browser still refuses to
-start while developing locally; it is broader, so it is not the default here,
-and `seccomp=unconfined` lifts the whole filter and is not recommended.
+`seccomp_profile.json` is Docker's current default profile (`moby/profiles`
+`seccomp/v0.3.0`) with one stanza allowing `clone`, `setns` and `unshare` for
+user namespaces — the same change Playwright documents for its own profile — so
+the examples above pass it with `--security-opt seccomp=...` and keep every
+other filter. Playwright's published copy is built on an older Docker default
+that lacks newer syscalls such as `openat2` and `close_range`, and Docker 28
+refuses to start a container under it. If a future Docker needs more, refresh
+the file from its default profile and keep that one stanza. Playwright
+documents `--cap-add=SYS_ADMIN` only as a fallback when the browser still
+refuses to start while developing locally; it is broader, so it is not the
+default here, and `seccomp=unconfined` lifts the whole filter and is not
+recommended.
 
 If that profile does not suit you, the simplest deployment is not a container
 at all: run the
@@ -242,8 +246,10 @@ HTML.
 
 Do not add `--no-new-privileges`: it blocks the setuid sandbox helper.
 
-`--ipc=host` matters too: with the default 64 MiB `/dev/shm`, Chromium crashes
-on pages heavier than a login form.
+No `--ipc=host` is needed, and none is recommended: the helper launches
+Chromium with `--disable-dev-shm-usage`, so it does not depend on the size of
+`/dev/shm`, and sharing the host's IPC namespace with a container that renders
+bank pages would only widen what a compromised renderer can reach.
 
 ## Tests
 

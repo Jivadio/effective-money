@@ -36,8 +36,9 @@ COPY --chown=pwuser:pwuser scripts/healthcheck.mjs ./scripts/healthcheck.mjs
 ENV NODE_ENV=production \
     SOLDE_BROWSER_HELPER_PORT=8765
 
-# Chromium's shared memory needs a real /dev/shm; run with `--ipc=host` or a
-# large `--shm-size`, otherwise pages fail to render under load.
+# Chromium runs with `--disable-dev-shm-usage`, so the default 64 MiB /dev/shm
+# is enough: no `--ipc=host` (it would share the host's IPC namespace). Run with
+# `--security-opt seccomp=seccomp_profile.json` for the sandbox (see README).
 USER pwuser
 EXPOSE 8765
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
