@@ -19,6 +19,7 @@ import {
   SessionNotFound,
   ShuttingDown,
   StateTooLarge,
+  QueueTimeout,
   TooManySessions,
   parseSessionOptions,
 } from "./sessions.js";
@@ -152,17 +153,27 @@ async function route(deps: ServerDeps, req: IncomingMessage, res: ServerResponse
     // The caller's clock starts here, not when the session queue lets us in:
     // a batch that waited behind another one must answer with what is left.
     const deadline = Date.now() + BATCH_DEADLINE_MS;
-    const outcome = await sessions.use(sessionId, (page) =>
-      Date.now() >= deadline
-        ? Promise.resolve({ results: [], failure: new ActionFailure("timeout", 0), stalled: false })
-        : runActions(
+    const outcome = await sessions
+      .use(
+        sessionId,
+        (page) =>
+          runActions(
             page,
             actions,
             { action: config.actionTimeoutMs, navigation: config.navigationTimeoutMs },
             log,
             deadline,
           ),
-    );
+        deadline,
+      )
+      .catch((error: unknown) => {
+        if (error instanceof QueueTimeout) {
+          // The batch never started: same answer as when the deadline has
+          // already passed by the time the turn comes.
+          return { results: [], failure: new ActionFailure("timeout", 0), stalled: false };
+        }
+        throw error;
+      });
     if (outcome.stalled) {
       // The page owes a Playwright call an answer it may never give: close the
       // context rather than hand a half-stuck session to the next request.

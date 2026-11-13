@@ -70,6 +70,11 @@ export class TooManySessions extends Error {
   override readonly name = "TooManySessions";
 }
 
+/** The session's turn never came before the caller's deadline. */
+export class QueueTimeout extends Error {
+  override readonly name = "QueueTimeout";
+}
+
 /** The service is shutting down; the caller can retry against a live one. */
 export class ShuttingDown extends Error {
   override readonly name = "ShuttingDown";
@@ -390,20 +395,53 @@ export class SessionManager {
   /**
    * Runs `fn` against the session's page, serialized with the session's other
    * requests: Playwright calls on one page must not interleave.
+   *
+   * `deadline` is absolute, on the `Date.now()` clock: a request that is still
+   * queued past it is refused with [`QueueTimeout`] instead of running after
+   * its caller gave up — and the late callback never touches the page. A
+   * queued request also re-checks that its session is still there when its
+   * turn comes: a close, or a disconnect, in between answers `SessionNotFound`
+   * rather than handing a dead page on.
    */
-  async use<T>(id: string, fn: (page: Page) => Promise<T>): Promise<T> {
+  async use<T>(id: string, fn: (page: Page) => Promise<T>, deadline: number = Number.POSITIVE_INFINITY): Promise<T> {
     const entry = await this.#require(id);
     entry.busy += 1;
-    const run = entry.tail.then(async () => await fn(entry.page));
-    entry.tail = run.then(
-      () => undefined,
-      () => undefined,
-    );
+    let releaseTurn!: () => void;
+    const turn = new Promise<void>((resolve) => {
+      releaseTurn = resolve;
+    });
+    const previous = entry.tail;
+    entry.tail = turn;
     try {
-      return await run;
+      await this.#awaitTurn(previous, deadline);
+      if (this.#sessions.get(id) !== entry) throw new SessionNotFound();
+      if (Date.now() >= deadline) throw new QueueTimeout();
+      return await fn(entry.page);
     } finally {
+      releaseTurn();
       entry.busy -= 1;
       entry.lastUsed = Date.now();
+    }
+  }
+
+  /** Waits for the previous turn on a session, or throws past `deadline`. */
+  async #awaitTurn(previous: Promise<void>, deadline: number): Promise<void> {
+    const waitMs = deadline - Date.now();
+    if (!(waitMs > 0)) throw new QueueTimeout();
+    if (waitMs === Number.POSITIVE_INFINITY) {
+      await previous;
+      return;
+    }
+    let timer: NodeJS.Timeout | undefined;
+    try {
+      await Promise.race([
+        previous,
+        new Promise<never>((_resolve, reject) => {
+          timer = setTimeout(() => reject(new QueueTimeout()), Math.max(1, waitMs));
+        }),
+      ]);
+    } finally {
+      if (timer !== undefined) clearTimeout(timer);
     }
   }
 

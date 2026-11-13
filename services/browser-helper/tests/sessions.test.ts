@@ -191,4 +191,76 @@ describe("session lifecycle", () => {
       await sessions.stop();
     }
   });
+
+  it("refuses queued work whose deadline has already passed", async () => {
+    const fake = fakeBrowser();
+    const sessions = manager({ launch: async () => fake.browser });
+    try {
+      const id = await sessions.create();
+      // A predecessor that never answers, like a storageState stuck driving
+      // the renderer while an action request queues behind it.
+      const stuck = sessions.use(id, () => new Promise<never>(() => undefined));
+      stuck.catch(() => undefined);
+      let touched = false;
+      await assert.rejects(
+        sessions.use(id, async () => {
+          touched = true;
+        }, Date.now() - 1000),
+        { name: "QueueTimeout" },
+      );
+      assert.equal(touched, false, "the late callback must never touch the page");
+    } finally {
+      await sessions.stop();
+    }
+  });
+
+  it("refuses queued work whose deadline passes while it waits", async () => {
+    const fake = fakeBrowser();
+    const sessions = manager({ launch: async () => fake.browser });
+    try {
+      const id = await sessions.create();
+      const stuck = sessions.use(id, () => new Promise<never>(() => undefined));
+      stuck.catch(() => undefined);
+      let touched = false;
+      await assert.rejects(
+        sessions.use(id, async () => {
+          touched = true;
+        }, Date.now() + 50),
+        { name: "QueueTimeout" },
+      );
+      assert.equal(touched, false, "the late callback must never touch the page");
+    } finally {
+      await sessions.stop();
+    }
+  });
+
+  it("does not hand a closed session to queued work", async () => {
+    const fake = fakeBrowser();
+    const sessions = manager({ launch: async () => fake.browser });
+    try {
+      const id = await sessions.create();
+      let release!: () => void;
+      const gate = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      let started!: () => void;
+      const startedGate = new Promise<void>((resolve) => {
+        started = resolve;
+      });
+      const first = sessions.use(id, async () => {
+        // Inside the turn now: the close below lands while this runs.
+        started();
+        return await gate;
+      });
+      await startedGate;
+      // Queued behind the first: its turn only comes after the close below.
+      const second = sessions.use(id, async () => "too late");
+      await sessions.close(id);
+      release();
+      await first;
+      await assert.rejects(second, { name: "SessionNotFound" });
+    } finally {
+      await sessions.stop();
+    }
+  });
 });
