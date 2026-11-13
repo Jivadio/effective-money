@@ -436,7 +436,7 @@ account for in the rate-limit budget.
 | Enable Banking | SDK |
 |---|---|
 | `entry_reference` | `remote_id` (stable across fetches; `transaction_id` is not) |
-| `booking_date` (**optional** upstream) | `booking_date: NaiveDate` — **required** in the SDK. Fall back to `value_date`, then `transaction_date`; if all three are absent, drop the row and log a count (never invent a date, since it feeds both the `since` window and the synthetic-id hash) |
+| `booking_date` (**optional** upstream) | `booking_date: NaiveDate` — **required** in the SDK. Fall back to `value_date`, then `transaction_date`; if all three are absent, drop the row (never invent a date, since it feeds both the `since` window and the synthetic-id hash). Neither the user nor the logs learn about the drop — see the note below |
 | `value_date` | `value_date` |
 | `transaction_amount.amount` × currency exponent, sign from `credit_debit_indicator` | `amount_minor: i64` — the string is decimal, so parse it exactly and round half-even, never through `f64` |
 | `transaction_amount.currency` | `currency` |
@@ -486,6 +486,55 @@ with an existing booked row of the same account, amount, currency, booking date
 and normalized label **only when exactly one candidate remains on each side** —
 otherwise import it as new and let the user see a possible double, which is the
 honest failure for two genuinely identical twins.
+
+**A skipped row is invisible, and not only to the user — the contract leaves no
+trace at all.** `BankConnector::transactions` returns
+`Result<Vec<RemoteTransaction>, ConnectorError>` and nothing else: there is no
+place to say "I fetched 213 rows and could not map 2 of them". Nor is there a
+logging path to fall back on: a connector may declare only the SDK plus
+`serde`/`serde_json` as direct dependencies (`crates/connectors/allowed-deps.toml`),
+and the SDK neither re-exports `tracing` nor offers a logging helper
+(`crates/connectors/connector-sdk/src/lib.rs` re-exports `async_trait`, `chrono`,
+`clock`, `connector`, `dto`, `interaction`, `money` and `secret`, nothing more).
+The SDK logs through `tracing` in its own modules (`http.rs`, `browser.rs`), but
+that path is not open to connector code. An `eprintln!` would compile, and a
+container runtime or process supervisor may well collect stderr — but that is
+not the same thing as a supported channel: it sits outside the app's tracing
+pipeline, so it carries no `sync_job_id`, cannot be filtered or redacted with
+the rest, and nothing guarantees it reaches the same destination as the app's
+own logs.
+
+So dropping a date-less booked row means the row is missing from the ledger, the
+balance we display stops reconciling with the bank's, and nobody can find out
+why. Four ways out, none of them mine to pick:
+
+1. **Accept it and document it.** The connector's `protocol.md` and
+   `acceptance.md` record the trade-off, which is all the visibility there is —
+   operational silence included. Cheap and honest, and defensible only if the
+   case turns out to be rare.
+2. **Extend the SDK** so a sync can carry a per-account count of rows the
+   connector could not map, surfaced by the engine as a warning on the account
+   ("2 transactions could not be imported"). A maintainer decision, in the same
+   family as `WsClient` and the `Degraded` state in the plan's open point 4.
+3. **Fail the sync instead of dropping.** `ConnectorError::Broken { detail }` is
+   already in the contract and a count carries no personal data, so returning it
+   when anything was dropped makes the loss loud **at the contract level**: the
+   `transactions` call fails instead of quietly returning a short list. What the
+   user then sees is not this study's to promise — the detailed plan maps
+   `Broken` to a notification and an *action required* state (M3b/M3e), but none
+   of that exists in code yet (`crates/sync` and `crates/api` are still
+   placeholders and the server only serves `/healthz`). The cost is a sync that
+   fails over one unparseable row, which is why I am listing it rather than
+   recommending it.
+4. **Give the engine the row anyway**, with no date and `remote_id: None`, and
+   let ingestion decide — rejected here, because the DTO requires a date and
+   inventing one corrupts both the `since` window and the synthetic-id hash.
+
+Option 1 asks the reader to accept a loss they cannot see, and § 10 item 13
+shows why a measurement cannot settle that on its own: a household produces a
+few hundred transactions in the window we can observe, which bounds the rate
+roughly, never to zero. So the choice should lean towards visibility unless the
+connector can show the case is vanishingly rare — not the other way round.
 
 ### 7.3 `login`, `Unattended`, and the SCA marking
 
@@ -594,6 +643,11 @@ fully offline.
    bank started (or stopped) returning a usable `entry_reference`. § 7.2
    proposes the narrow pairing rule; it belongs to whoever owns the ingestion
    step, not to this study.
+10. **How a dropped transaction becomes visible at all** is undecided: the
+    contract has no report channel and a connector has no logging path either
+    (§ 7.2). Document the silence, add a per-sync skipped count to the SDK, or
+    fail the sync with `Broken` — a maintainer call, taken together with item 13
+    below.
 
 ## 10. Still to confirm
 
@@ -630,6 +684,23 @@ rest change details of the implementation or of the plan.
 12. **Which production fields a restricted application really needs** —
     register a production application and see whether `description`, `terms_url`,
     `privacy_url` and `gdpr_email` can be left empty in restricted mode (§ 3.3).
+13. **How often a booked transaction arrives with none of `booking_date`,
+    `value_date` and `transaction_date`.** Two separate checks, because they
+    answer different questions:
+    - **Coverage, on the Mock ASPSP**: fabricate such a row and confirm the
+      connector drops it, keeps the rest of the batch, and leaves the id scheme
+      intact. Mock data is synthetic by construction (§ 2.7), so this proves the
+      code path, not how often it happens.
+    - **Frequency, on real accounts only**: count those rows over the window
+      available, with the total number of transactions seen, and report the ratio
+      rather than a verdict. Be explicit about what the sample can and cannot
+      prove: with *N* transactions and no hit, the 95% upper bound on the rate is
+      about 3/*N* (rule of three), so a few hundred transactions bound it at a
+      few per thousand at best — they can never show the case is absent. That is
+      why the choice in § 9 item 10 leans on visibility rather than on this
+      number, and why the threshold I would propose (> 1 per thousand means the
+      SDK channel is mandatory) is a proposal for the maintainer to accept or
+      replace, not a finding of this study.
 
 ## 11. Sources
 
