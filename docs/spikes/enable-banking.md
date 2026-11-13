@@ -707,11 +707,16 @@ rest change details of the implementation or of the plan.
       rather than a verdict. Be explicit about what the sample can and cannot
       prove: with *N* transactions and no hit, the 95% upper bound on the rate is
       about 3/*N* (rule of three), so a few hundred transactions bound it at a
-      few per thousand at best — they can never show the case is absent. That is
-      why the choice in § 9 item 10 leans on visibility rather than on this
-      number, and why the threshold I would propose (> 1 per thousand means the
-      SDK channel is mandatory) is a proposal for the maintainer to accept or
-      replace, not a finding of this study.
+      few per thousand at best — they can never show the case is absent. The
+      bound also assumes independent draws, and missing dates are almost
+      certainly clustered — one bank's API change, one card scheme's export, one
+      week of statements — so treat it as an order-of-magnitude hint per bank
+      rather than a bound to carry across banks: report the per-bank counts and
+      let them stand on their own when they disagree. That is why the choice in
+      § 9 item 10 leans on visibility rather than on this number, and why the
+      threshold I would propose (> 1 per thousand means the SDK channel is
+      mandatory) is a proposal for the maintainer to accept or replace, not a
+      finding of this study.
 
 ## 11. Sources
 
