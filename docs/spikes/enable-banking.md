@@ -455,15 +455,18 @@ to synthesized ids, exactly like a bank without stable ids.
 **The duplicate case needs care, because the helper will not fix it for us.**
 `ids::synthesize_remote_ids` passes through every transaction that already has a
 non-empty `remote_id` and only disambiguates rows it had to name itself
-(`crates/connectors/connector-sdk/src/ids.rs`). Two rows carrying the same
-`entry_reference` therefore reach the engine with the same key, and the upsert on
-`(account, remote_id)` keeps one and silently drops the other. The rule for the
-connector: when a fetch yields the same `entry_reference` twice in one account,
-**set `remote_id = None` on the colliding rows** (simplest: on all of them, or on
-every one after the first, deterministically) and let the helper hash them —
-which, together with `occurrence_index`, keeps both twins. Which of the two
-policies to pick is worth a line in the connector's own protocol notes; both keep
-the data, the difference is only which row inherits the bank's id.
+(`crates/connectors/connector-sdk/src/ids.rs`). That is not a hypothetical:
+Enable Banking's own FAQ says some ASPSPs "provide duplicate values even though
+they should not" (*Are there unique identifiers for transactions?*). Two rows
+carrying the same `entry_reference` therefore reach the engine with the same key,
+and the upsert on `(account, remote_id)` keeps one and silently drops the other.
+The rule for the connector: when a fetch yields the same `entry_reference`
+twice in one account, **set `remote_id = None` on the colliding rows**
+(simplest: on all of them, or on every one after the first, deterministically)
+and let the helper hash them — which, together with `occurrence_index`, keeps
+both twins. Which of the two policies to pick is worth a line in the connector's
+own protocol notes; both keep the data, the difference is only which row inherits
+the bank's id.
 
 Pending rows are the case to watch, and the vendor has a rule for exactly this
 (FAQ, *Are there unique identifiers for transactions?*): "If an ASPSP provides a
