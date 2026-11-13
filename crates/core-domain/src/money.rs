@@ -281,7 +281,7 @@ impl Currency {
 
     /// Converts a decimal amount (`"-42.90"`) into minor units of this
     /// currency, rounding half-even (banker's rounding) to the currency's
-    /// minor digits: `"2.455"` is `245` for EUR, `"2.445"` is `244`.
+    /// minor digits: `"2.455"` is `246` for EUR, `"2.445"` is `244`.
     /// `None` if the text is not a plain decimal number or overflows.
     pub fn round_minor(&self, text: &str) -> Option<i64> {
         round_decimal_to_minor(text, self.minor_digits())
