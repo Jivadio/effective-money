@@ -116,13 +116,14 @@ describe("cleartext proxy", () => {
   it("keeps the loopback exceptions while disabling the implicit bypass", () => {
     // `<-loopback>` turns Chromium's implicit bypass back off: without it the
     // browser also exempts link-local addresses on its own, and a redirect to
-    // cleartext there would never reach the proxy. The loopback hosts stay
-    // listed, so a local page still talks direct.
+    // cleartext there would never reach the proxy. It must stay first, with
+    // the loopback hosts after it: the other order sends loopback traffic
+    // through the proxy, which refuses it, and every local page fails.
     const entries = PROXY_BYPASS.split(",");
-    assert.ok(entries.includes("127.0.0.1"), "loopback stays direct");
-    assert.ok(entries.includes("localhost"), "loopback stays direct");
-    assert.ok(entries.includes("[::1]"), "loopback stays direct");
-    assert.ok(entries.includes("<-loopback>"), "the implicit bypass must stay off");
+    assert.equal(entries[0], "<-loopback>", "the implicit bypass must stay off");
+    for (const host of ["127.0.0.1", "localhost", "[::1]"]) {
+      assert.ok(entries.includes(host), `${host} stays direct`);
+    }
   });
 
   it("refuses cleartext to a link-local address", async () => {

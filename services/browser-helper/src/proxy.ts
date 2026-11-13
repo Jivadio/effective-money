@@ -9,13 +9,17 @@
  *
  * The browser is therefore launched behind this proxy: `CONNECT` (TLS, opaque
  * to us) is tunnelled, and every other request is refused with `403`. The
- * bypass list carries `<-loopback>` so Chromium's *implicit* bypass stays off:
- * without it Chromium also exempts link-local addresses (`169.254.0.0/16`,
- * `fe80::/10`) from the proxy on its own — and a redirect hop never comes back
- * to a route handler, so that cleartext would leave the machine unseen. The
- * explicit loopback entries restore the intended exceptions, so a local page
- * still talks direct and this proxy only ever sees traffic that would leave
- * the machine.
+ * bypass list starts with `<-loopback>`, which turns Chromium's *implicit*
+ * bypass back off: without it Chromium also exempts link-local addresses
+ * (`169.254.0.0/16`, `fe80::/10`) from the proxy on its own — and a redirect
+ * hop never comes back to a route handler, so that cleartext would leave the
+ * machine unseen. The explicit loopback entries restore the intended
+ * exceptions, so a local page still talks direct and this proxy only ever sees
+ * traffic that would leave the machine.
+ *
+ * Order matters, and it was checked the hard way: `<-loopback>` has to come
+ * first, with the explicit exceptions after it. The other order sends loopback
+ * traffic to this proxy too, which refuses it — every local page then fails.
  */
 
 import { once } from "node:events";
@@ -26,12 +30,15 @@ import { redactUrl, type Logger } from "./log.js";
 
 /**
  * Hosts the browser talks to directly: the same set `transportAllowed` allows,
- * plus `<-loopback>`, which turns Chromium's implicit bypass back off. Without
- * it Chromium exempts link-local addresses on its own, and a redirect to
- * cleartext there would never reach this proxy; the explicit entries keep the
- * intended loopback exceptions.
+ * preceded by `<-loopback>`, which turns Chromium's implicit bypass back off.
+ * Without it Chromium exempts link-local addresses on its own, and a redirect
+ * to cleartext there would never reach this proxy; the explicit entries keep
+ * the intended loopback exceptions. `<-loopback>` must stay first: after the
+ * exceptions, loopback traffic goes through the proxy instead, which refuses
+ * it — verified with the pinned Chromium, which treats the order as
+ * significant.
  */
-export const PROXY_BYPASS = "127.0.0.1,localhost,[::1],<-loopback>";
+export const PROXY_BYPASS = "<-loopback>,127.0.0.1,localhost,[::1]";
 
 export interface PolicyProxy {
   /** `http://127.0.0.1:<port>`, for `chromium.launch({ proxy })`. */
