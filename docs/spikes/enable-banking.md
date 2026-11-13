@@ -436,13 +436,14 @@ account for in the rate-limit budget.
 | Enable Banking | SDK |
 |---|---|
 | `entry_reference` | `remote_id` (stable across fetches; `transaction_id` is not) |
-| `booking_date` | `booking_date` |
+| `booking_date` (**optional** upstream) | `booking_date: NaiveDate` — **required** in the SDK. Fall back to `value_date`, then `transaction_date`; if all three are absent, drop the row and log a count (never invent a date, since it feeds both the `since` window and the synthetic-id hash) |
 | `value_date` | `value_date` |
 | `transaction_amount.amount` × currency exponent, sign from `credit_debit_indicator` | `amount_minor: i64` — the string is decimal, so parse it exactly and round half-even, never through `f64` |
 | `transaction_amount.currency` | `currency` |
 | `remittance_information[]` + `creditor`/`debtor` name | `label` — joined as the bank gave it, untrusted text; **empty for Trade Republic** |
 | `status`: `BOOK` → `Booked`, `PDNG` → `Pending` | `status` |
-| `entry_reference` absent, or duplicated within the account | fall back to `ids::synthesize_remote_ids` |
+| `entry_reference` absent | fall back to `ids::synthesize_remote_ids` |
+| `entry_reference` **duplicated** within the account | **clear the duplicates before calling the helper** — it keeps any non-empty `remote_id` untouched, so the clash survives otherwise |
 
 Twins on the same day (two identical coffees) are preserved as long as
 `entry_reference` is unique per account — and the SDK's id scheme only needs
@@ -451,11 +452,40 @@ real LBP account: that two identical same-day transactions really do carry two
 distinct `entry_reference` values. If they do not, the connector must fall back
 to synthesized ids, exactly like a bank without stable ids.
 
+**The duplicate case needs care, because the helper will not fix it for us.**
+`ids::synthesize_remote_ids` passes through every transaction that already has a
+non-empty `remote_id` and only disambiguates rows it had to name itself
+(`crates/connectors/connector-sdk/src/ids.rs`). Two rows carrying the same
+`entry_reference` therefore reach the engine with the same key, and the upsert on
+`(account, remote_id)` keeps one and silently drops the other. The rule for the
+connector: when a fetch yields the same `entry_reference` twice in one account,
+**set `remote_id = None` on the colliding rows** (simplest: on all of them, or on
+every one after the first, deterministically) and let the helper hash them —
+which, together with `occurrence_index`, keeps both twins. Which of the two
+policies to pick is worth a line in the connector's own protocol notes; both keep
+the data, the difference is only which row inherits the bank's id.
+
 Pending rows are the case to watch: a `PDNG` transaction may carry no
 `entry_reference` at all, so it lands in the synthesized-id branch. The engine
 already expects that — M3c of the detailed plan replaces pending transactions
 without a stable id **wholesale** on each sync, and keeps a pending row that does
-have one until it is booked.
+have one until it is booked. The helper also drops id-less **booked** rows dated
+after `last_complete_day` on purpose, so a sync started mid-day loses nothing:
+they come back once their booking day is complete. That is one more reason the
+engine must pass `since` at the start of a full booking day.
+
+**An id that changes between syncs is the remaining hole, and it is a maintainer
+decision.** With the duplicate rule above, a booked row can switch from the
+bank's `entry_reference` to a `syn1:…` key from one sync to the next (the bank
+starts returning duplicates, or stops returning the field). Since the engine keys
+on `(account, remote_id)`, the new key looks like a new transaction and the row
+can be inserted twice. M3c only defines pairing for `pending → booked`. The
+narrow rule that would close it, and that I would put to the maintainer rather
+than decide here: when a booked row's computed `remote_id` is new, pair it 1:1
+with an existing booked row of the same account, amount, currency, booking date
+and normalized label **only when exactly one candidate remains on each side** —
+otherwise import it as new and let the user see a possible double, which is the
+honest failure for two genuinely identical twins.
 
 ### 7.3 `login`, `Unattended`, and the SCA marking
 
@@ -559,6 +589,11 @@ fully offline.
 8. **The README matrix can move off "feasibility study pending"** for the Enable
    Banking column — it is the maintainer's call, and this document is the
    evidence for it.
+9. **M3c needs one rule it does not have**: what the engine does when a booked
+   transaction's computed `remote_id` changes between two syncs, because the
+   bank started (or stopped) returning a usable `entry_reference`. § 7.2
+   proposes the narrow pairing rule; it belongs to whoever owns the ingestion
+   step, not to this study.
 
 ## 10. Still to confirm
 
