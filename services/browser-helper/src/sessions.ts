@@ -226,7 +226,7 @@ export class SessionManager {
         this.#log.error("browser launch failed", {
           error_name: error instanceof Error ? error.name : "unknown",
           hint: /sandbox|namespace|suid/i.test(message)
-            ? "chromium cannot start its sandbox here; grant it (seccomp=unconfined or CAP_SYS_ADMIN) or set SOLDE_BROWSER_HELPER_CHROMIUM_SANDBOX=false"
+            ? "chromium cannot start its sandbox here; grant it (the shipped seccomp_profile.json, or CAP_SYS_ADMIN for local development) or set SOLDE_BROWSER_HELPER_CHROMIUM_SANDBOX=false"
             : undefined,
         });
         throw error;

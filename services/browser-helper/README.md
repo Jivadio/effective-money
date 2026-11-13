@@ -174,7 +174,8 @@ export it: the server and the helper have to see the same value.
 export SOLDE_BROWSER_HELPER_TOKEN="$(node -e 'console.log(require("node:crypto").randomBytes(32).toString("hex"))')"
 # solde-server starts with that variable in its environment, then:
 docker build -t solde-browser-helper services/browser-helper
-docker run --rm --ipc=host --cap-add=SYS_ADMIN \
+docker run --rm --ipc=host \
+  --security-opt seccomp=./services/browser-helper/seccomp_profile.json \
   --network container:solde-server \
   -e SOLDE_BROWSER_HELPER_TOKEN solde-browser-helper
 ```
@@ -204,8 +205,10 @@ services:
     image: solde-browser-helper
     network_mode: "service:solde-server"   # shares the server's loopback
     ipc: host                              # Chromium needs more than 64 MiB of /dev/shm
-    cap_add:
-      - SYS_ADMIN                          # Chromium's sandbox needs user namespaces
+    # Narrow grant for the sandbox: the profile shipped as
+    # services/browser-helper/seccomp_profile.json (path relative to this file).
+    security_opt:
+      - seccomp:./services/browser-helper/seccomp_profile.json
     depends_on: [solde-server]
     environment:
       SOLDE_BROWSER_HELPER_TOKEN: ${SOLDE_BROWSER_HELPER_TOKEN:?set a 32+ character token}
@@ -217,15 +220,17 @@ server's loopback.
 **The sandbox and Docker.** Chromium starts with its process sandbox on, and
 Docker's default seccomp profile refuses the user namespaces it needs, so a
 bare `docker run` fails to launch the browser — the log says so, with a hint.
-Two ways to grant it, both verified here, and both a trade:
+The narrow grant is the profile shipped beside the service:
+`seccomp_profile.json` is Playwright's published profile for untrusted pages —
+Docker's default with one stanza allowing `clone`, `setns` and `unshare` for
+user namespaces — so the examples above pass it with
+`--security-opt seccomp=...` and keep every other filter. Playwright documents
+`--cap-add=SYS_ADMIN` only as a fallback when the browser still refuses to
+start while developing locally; it is broader, so it is not the default here,
+and `seccomp=unconfined` lifts the whole filter and is not recommended.
 
-- `cap_add: [SYS_ADMIN]` in that one container, which is what the examples
-  above use. It gives the container a capability it would not otherwise have.
-- `security_opt: [seccomp=unconfined]`, which lifts the syscall filter from the
-  same container. The sandbox still runs; containment rests on it and on the
-  namespace, not on seccomp.
-
-Neither is free, so the simplest deployment is not a container at all: run the
+If that profile does not suit you, the simplest deployment is not a container
+at all: run the
 helper as a process beside the server and it keeps its sandbox with no flags.
 If none of this suits you, `SOLDE_BROWSER_HELPER_CHROMIUM_SANDBOX=false` works
 and says plainly what it gives up: an unsandboxed renderer in front of bank
