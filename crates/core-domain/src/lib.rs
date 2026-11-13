@@ -26,11 +26,11 @@ pub mod household;
 pub mod ids;
 pub mod money;
 
-pub use date::Date;
+pub use date::{Date, InvalidDate};
 pub use household::{
     Account, AccountAccess, AccountIdentity, AccountKind, AccountSource, Action, CategorySource,
-    Connection, Household, Permission, Role, SourceState, Transaction, TransactionStatus, User,
-    authoritative_source, normalize_iban,
+    Connection, Household, Permission, Role, SourceState, Transaction, TransactionStatus,
+    UnknownAccountKind, User, authoritative_source, normalize_iban,
 };
 pub use ids::{
     AccountId, AccountSourceId, CategoryId, ConnectionId, HouseholdId, InvalidId, TransactionId,

@@ -445,7 +445,8 @@ fn split_decimal(text: &str) -> Option<(&str, u32)> {
 
 /// Converts a plain decimal amount to minor units with half-even rounding to
 /// `digits` decimals. `None` for malformed input or `i64` overflow.
-/// Only the magnitude is computed here; the caller applies the sign.
+/// The magnitude is rounded first and the sign re-applied at the end, so
+/// ties round symmetrically (`-2.455` is `-246`) and `i64::MIN` fits.
 fn round_decimal_to_minor(text: &str, digits: u32) -> Option<i64> {
     let negative = text.starts_with('-');
     let (unsigned, _) = split_decimal(text)?;
