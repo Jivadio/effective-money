@@ -1173,14 +1173,14 @@ dependencies = [
 
 [[package]]
 name = "solde-analytics"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "solde-core-domain",
 ]
 
 [[package]]
 name = "solde-api"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "solde-services",
  "solde-sync-facade",
@@ -1188,35 +1188,35 @@ dependencies = [
 
 [[package]]
 name = "solde-categorization"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "solde-core-domain",
 ]
 
 [[package]]
 name = "solde-connector-banque-populaire"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "solde-connector-sdk",
 ]
 
 [[package]]
 name = "solde-connector-banque-postale"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "solde-connector-sdk",
 ]
 
 [[package]]
 name = "solde-connector-enable-banking"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "solde-connector-sdk",
 ]
 
 [[package]]
 name = "solde-connector-fake-bank"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -1225,7 +1225,7 @@ dependencies = [
 
 [[package]]
 name = "solde-connector-registry"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "solde-connector-banque-populaire",
  "solde-connector-banque-postale",
@@ -1237,7 +1237,7 @@ dependencies = [
 
 [[package]]
 name = "solde-connector-sdk"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "async-trait",
  "axum",
@@ -1259,18 +1259,18 @@ dependencies = [
 
 [[package]]
 name = "solde-connector-trade-republic"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "solde-connector-sdk",
 ]
 
 [[package]]
 name = "solde-core-domain"
-version = "0.0.0"
+version = "0.1.0"
 
 [[package]]
 name = "solde-mcp"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "solde-services",
  "solde-sync-facade",
@@ -1278,18 +1278,18 @@ dependencies = [
 
 [[package]]
 name = "solde-pricing"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "solde-core-domain",
 ]
 
 [[package]]
 name = "solde-secrets"
-version = "0.0.0"
+version = "0.1.0"
 
 [[package]]
 name = "solde-server"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -1307,7 +1307,7 @@ dependencies = [
 
 [[package]]
 name = "solde-services"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "solde-analytics",
  "solde-categorization",
@@ -1318,14 +1318,14 @@ dependencies = [
 
 [[package]]
 name = "solde-storage"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "solde-core-domain",
 ]
 
 [[package]]
 name = "solde-sync"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "solde-connector-registry",
  "solde-pricing",
@@ -1336,7 +1336,7 @@ dependencies = [
 
 [[package]]
 name = "solde-sync-facade"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "solde-services",
 ]
@@ -1907,7 +1907,7 @@ checksum = "3ad82d2a33cdc9674dc7465672f271e096168fcdbe0f799d9e6db8c5892679dc"
 
 [[package]]
 name = "xtask"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "cargo_metadata",
