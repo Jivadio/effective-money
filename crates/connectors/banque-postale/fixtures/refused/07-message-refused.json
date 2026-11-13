@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/wsost/OstBrokerWeb/message.html",
+    "query": "param=AuthentAppRejected"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "text/html"
+    },
+    "body": "<html><head><title>Information - La Banque Postale</title></head><body><h2>Votre demande n'a pas pu aboutir</h2><p>La validation sur votre application n'a pas été confirmée.</p></body></html>"
+  }
+}

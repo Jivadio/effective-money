@@ -8,6 +8,6 @@
     "headers": {
       "content-type": "text/html"
     },
-    "body": "<ul><li><div class=\"account-resume2020 account-resume--ccp\"><div class=\"cartridge\"><div class=\"account-data\"><h3 class=\"title\"><a href=\"https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/CCP/releves_ccp/init-releve_ccp.ea?compte.numero=11111111-1111-1111-1111-111111111111&amp;typeRecherche=5\"><span class=\"pseudo-h3\">Compte Bancaire </span><span>N° 00000000001</span></a></h3></div><div class=\"account-amount\"><div class=\"account-amount-group\"><p class=\"amount-euro\"><span class=\"lib sr-only\">Solde </span>+ 1 234,56 €</p></div></div></div></div></li></ul>"
+    "body": "<ul><li><div class=\"account-resume2020 account-resume--ccp\"><div class=\"cartridge\"><div class=\"account-data\"><h3 class=\"title\"><a href=\"https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/CCP/releves_ccp/init-releve_ccp.ea?compte.numero=11111111-1111-1111-1111-111111111111&amp;typeRecherche=5\"><span class=\"pseudo-h3\">Compte Bancaire </span><span>N° 000 00000001</span></a></h3></div><div class=\"account-amount\"><div class=\"account-amount-group\"><p class=\"amount-euro\"><span class=\"lib sr-only\">Solde </span>- 1 234,56 €</p></div></div></div></div></li></ul>"
   }
 }

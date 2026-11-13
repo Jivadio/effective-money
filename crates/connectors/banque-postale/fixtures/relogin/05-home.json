@@ -1,0 +1,12 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/voscomptes/canalXHTML/identif.ea"
+  },
+  "response": {
+    "status": 302,
+    "headers": {
+      "location": "https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/comptesCommun/synthese_ccp/afficheSyntheseCCP-synthese_ccp.ea"
+    }
+  }
+}

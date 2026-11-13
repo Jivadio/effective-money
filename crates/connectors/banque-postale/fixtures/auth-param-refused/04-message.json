@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/wsost/OstBrokerWeb/message.html",
+    "query": "param=0x132120c8"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "text/html"
+    },
+    "body": "<html><head><title>Information - La Banque Postale</title></head><body><h2>Connexion refusée</h2><p>Votre identifiant ou votre code est incorrect.</p></body></html>"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/voscomptes/canalXHTML/CNE/releveCNE/init-releve_cne.ea",
+    "query": "compte.numero=22222222-2222-2222-2222-222222222222&typeRecherche=15"
+  },
+  "response": {
+    "status": 404,
+    "headers": {
+      "content-type": "text/html"
+    },
+    "body": "<html><body><p>Page introuvable.</p></body></html>"
+  }
+}

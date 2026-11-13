@@ -1,0 +1,12 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/wsost/OstBrokerWeb/auth"
+  },
+  "response": {
+    "status": 302,
+    "headers": {
+      "location": "/voscomptes/canalXHTML/identif.ea"
+    }
+  }
+}
