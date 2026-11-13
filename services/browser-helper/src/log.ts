@@ -3,9 +3,11 @@
  * Line-oriented JSON logging with a hard rule: a field value must be safe to
  * publish, because this module cannot tell a secret from a label.
  *
- * Callers pass session ids, operation names, statuses and selectors, and URLs
- * only through [`redactUrl`]. Request bodies, filled values, cookies, storage
- * values and the helper token are never logged; the SDK's `redact_path` does
+ * Callers pass session ids, operation names, statuses and safe scalars; the
+ * per-action debug log carries no selector and no URL path, because masking
+ * cannot catch a short or word-shaped secret. Request bodies, filled values,
+ * cookies, storage values and the helper token are never written; the URLs a
+ * warn path names go through [`redactUrl`], and the SDK's `redact_path` does
  * the same job on the Rust side.
  */
 
@@ -77,11 +79,6 @@ export function redactUrl(value: string): string {
     .join("/");
   const path = masked.length > 200 ? `${masked.slice(0, 200)}…` : masked;
   return `${url.origin}${path}`;
-}
-
-/** A selector, capped so a pathological page cannot bloat a log line. */
-export function redactSelector(selector: string): string {
-  return selector.length > 120 ? `${selector.slice(0, 120)}…` : selector;
 }
 
 export function createLogger(options: LoggerOptions): Logger {

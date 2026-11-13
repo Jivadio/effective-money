@@ -24,7 +24,7 @@ import {
   MAX_RESULT_BYTES,
   MAX_WAIT_MS,
 } from "./config.js";
-import { redactSelector, redactUrl, type Logger } from "./log.js";
+import { redactUrl, type Logger } from "./log.js";
 
 /**
  * `timeout`, `not_found` and `navigation_failed` are the protocol's codes;
@@ -269,22 +269,29 @@ export function parseActions(input: unknown): Action[] {
   return actions;
 }
 
-/** What may be logged about an action: never a filled value. */
+/**
+ * What may be logged about an action: the operation and its index (logged at
+ * the call site) plus safe scalars only. Selectors and URL paths are caller
+ * controlled and can carry a token fragment, and masking cannot catch a short
+ * or word-shaped secret — so they are omitted here, not redacted. The `name`
+ * of an attribute comes from a closed alphabet, a timeout is a validated
+ * integer, and a match is logged by its length, so those stay.
+ */
 function describe(action: Action): Record<string, string | number | boolean> {
   switch (action.op) {
     case "goto":
-      return { url: redactUrl(action.url) };
+      return {};
     case "fill":
-      return { selector: redactSelector(action.selector), secret: action.secret };
+      return { secret: action.secret };
     case "wait_for":
       // The needle can carry a query string or a token fragment: log its size.
       return action.selector !== null
-        ? { selector: redactSelector(action.selector), timeout_ms: action.timeoutMs }
+        ? { timeout_ms: action.timeoutMs }
         : { url_contains_length: (action.urlContains ?? "").length, timeout_ms: action.timeoutMs };
     case "attribute":
-      return { selector: redactSelector(action.selector), name: action.name };
+      return { name: action.name };
     default:
-      return { selector: redactSelector(action.selector) };
+      return {};
   }
 }
 

@@ -43,6 +43,30 @@ function pageThatStalls(): Page {
 }
 
 /**
+ * A page where every operation succeeds, for the logging tests.
+ */
+function pageForLogging(): Page {
+  const target = {
+    fill: async () => undefined,
+    click: async () => undefined,
+    innerText: async () => "ok",
+    getAttribute: async () => "v",
+    screenshot: async () => Buffer.from("png"),
+  };
+  const locator = {
+    count: async () => 1,
+    first: () => target,
+  };
+  return {
+    goto: async () => undefined,
+    url: () => "https://bank.invalid/",
+    locator: () => locator,
+    waitForSelector: async () => undefined,
+    waitForURL: async () => undefined,
+  } as unknown as Page;
+}
+
+/**
  * A page whose count takes `stallMs`, and whose text never arrives — the fake
  * honours the timeout it is handed, the way Playwright does.
  */
@@ -106,6 +130,41 @@ describe("action deadlines", () => {
     assert.equal(outcome.failure?.code, "timeout");
     assert.equal(outcome.failure?.opIndex, 0);
     assert.equal(outcome.results.length, 0);
+  });
+});
+
+describe("action logging", () => {
+  it("writes no caller-controlled value to the debug log", async () => {
+    const lines: string[] = [];
+    const debug = createLogger({ level: "debug", sink: (line) => lines.push(line) });
+    // Two of these leaked under the old logging — a path secret too short to
+    // mask, a token-shaped selector — and two never did (a code logged by
+    // length, a filled value never logged); all four are pinned here.
+    const pathSecret = "abc123";
+    const selectorSecret = '[data-token="fake-secret-9"]';
+    const codeSecret = "FAKE-SECRET-CODE";
+    const filledSecret = "hunter2-fake";
+    const outcome = await runActions(
+      pageForLogging(),
+      parseActions([
+        { op: "goto", url: `https://bank.invalid/cb/${pathSecret}` },
+        { op: "fill", selector: selectorSecret, value: filledSecret, secret: true },
+        { op: "wait_for", url_contains: `/callback?code=${codeSecret}`, timeout_ms: 1000 },
+        { op: "text", selector: "#message" },
+      ]),
+      TIMEOUTS,
+      debug,
+      Date.now() + 10_000,
+    );
+    assert.equal(outcome.failure, null);
+    const logged = lines.filter((line) => line.includes('"msg":"action"'));
+    assert.equal(logged.length, 4);
+    for (const secret of [pathSecret, selectorSecret, codeSecret, filledSecret]) {
+      assert.ok(
+        logged.every((line) => !line.includes(secret)),
+        `the debug log must not carry ${secret}`,
+      );
+    }
   });
 });
 

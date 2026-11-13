@@ -125,14 +125,18 @@ add up to 100 s at most.
 
 - **Loopback only.** The socket is bound to `127.0.0.1`; there is no option to
   bind elsewhere.
-- **No secret in a log, as far as a URL can be read.** A log line carries the
-  session id, the op name, the selector, the timeout, and a URL reduced to its
-  origin and path with identifier-looking segments masked. Request bodies,
-  filled values, cookies, storage values and the token are never written, and
-  browser errors are logged by name only because their message can quote page
-  content. The path rule cannot catch a secret that looks like ordinary path
-  text, so a connector must not put one there — the query string is dropped
-  outright for exactly that reason.
+- **No secret in a log line.** A per-action debug line carries the op, its
+  index and safe scalars only (a timeout, a match length, an attribute name
+  from a closed alphabet): no selector and no URL path, because masking cannot
+  catch a short or word-shaped secret, so they are omitted rather than
+  redacted. Request bodies, filled values, cookies, storage values and the
+  token are never written, and browser errors are logged by name only because
+  their message can quote page
+  content. The few warn lines that name a URL (a refused request, a page that
+  landed off the allowlist) pass it through `redactUrl`, which drops the query
+  string outright and masks identifier-looking path segments — a short or
+  word-shaped secret in a path is still logged as written, so a connector must
+  not put one there.
 - **No plain HTTP off the machine.** `goto` accepts `https` anywhere and plain
   `http` to `127.0.0.1`, `localhost` or `::1` only — and nothing else, not even
   `about:blank`. The rule holds three times over: when the batch is validated,
