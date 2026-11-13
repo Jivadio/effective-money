@@ -6,7 +6,7 @@ We are at the very start. Pages marked "planned" describe where we are heading, 
 - [../DESIGN.md](../DESIGN.md) - the Ledger design system: tokens, components, voice and localization
 - [adr/0001-architecture-v1.md](adr/0001-architecture-v1.md) - architecture decision record for V1
 - [security-model.md](security-model.md) - secrets and threat model (planned)
-- [spikes/](spikes/) - feasibility studies for each bank (empty for now)
+- [spikes/](spikes/) - feasibility studies; start with [spikes/enable-banking.md](spikes/enable-banking.md) (Enable Banking for a self-hoster: terms, coverage, consent, callback)
 - [connectors/writing-a-connector.md](connectors/writing-a-connector.md) - how to write a bank connector; per-bank notes live in [connectors/](connectors/)
 
 ## For maintainers
