@@ -179,8 +179,9 @@ List every OTP trigger of your bank in its `protocol.md`.
   `response.header_all("set-cookie")`, keep the `name=value` pairs you need in
   your `SessionBlob`, and send them with `.header("cookie", ..)`. After a
   browser login, `BrowserState::cookie_header(host)` builds that header.
-- **`browser::BrowserClient`** drives the browser-helper service for the login
-  steps that need a real browser. Use `with_session`, which always closes the
+- **`browser::BrowserClient`** drives the browser-helper service
+  (`services/browser-helper/`, see its README) for the login steps that need a
+  real browser. Use `with_session`, which always closes the
   session, even on error:
 
   ```rust
