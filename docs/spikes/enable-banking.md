@@ -695,10 +695,13 @@ rest change details of the implementation or of the plan.
 13. **How often a booked transaction arrives with none of `booking_date`,
     `value_date` and `transaction_date`.** Two separate checks, because they
     answer different questions:
-    - **Coverage, on the Mock ASPSP**: fabricate such a row and confirm the
-      connector drops it, keeps the rest of the batch, and leaves the id scheme
-      intact. Mock data is synthetic by construction (§ 2.7), so this proves the
-      code path, not how often it happens.
+    - **Coverage, on the Mock ASPSP**: fabricate such a row and assert the
+      outcome of whichever policy § 9 item 10 settles on — under "document the
+      drop" or a skipped count (options 1 and 2) the batch keeps every other row
+      and the id scheme stays intact; under `Broken` (option 3) the call must
+      fail outright and that fetch must contribute no transactions at all. Mock
+      data is synthetic by construction (§ 2.7), so this proves the code path,
+      not how often it happens.
     - **Frequency, on real accounts only**: count those rows over the window
       available, with the total number of transactions seen, and report the ratio
       rather than a verdict. Be explicit about what the sample can and cannot
