@@ -107,7 +107,12 @@ function actionsOf(body: unknown): unknown {
   return actions;
 }
 
-async function route(deps: ServerDeps, req: IncomingMessage, res: ServerResponse): Promise<void> {
+async function route(
+  deps: ServerDeps,
+  req: IncomingMessage,
+  res: ServerResponse,
+  receivedAt: number = Date.now(),
+): Promise<void> {
   const { config, log, sessions } = deps;
   const method = req.method ?? "GET";
   let pathname = "/";
@@ -150,9 +155,9 @@ async function route(deps: ServerDeps, req: IncomingMessage, res: ServerResponse
     if (method !== "POST") return methodNotAllowed(res, "POST");
     const body = hasBody(req) ? await readJsonBody(req) : null;
     const actions = parseActions(actionsOf(body));
-    // The caller's clock starts here, not when the session queue lets us in:
-    // a batch that waited behind another one must answer with what is left.
-    const deadline = Date.now() + BATCH_DEADLINE_MS;
+    // The caller's clock starts when the request arrives, before the body is
+    // read: a slow upload eats the same budget as the queue and the batch.
+    const deadline = receivedAt + BATCH_DEADLINE_MS;
     const outcome = await sessions
       .use(
         sessionId,
