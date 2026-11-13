@@ -14,7 +14,7 @@ import { connect, createServer as createNetServer, type Socket } from "node:net"
 import { describe, it } from "node:test";
 
 import { createLogger } from "../src/log.js";
-import { startPolicyProxy } from "../src/proxy.js";
+import { PROXY_BYPASS, startPolicyProxy } from "../src/proxy.js";
 
 function captureLogger(): { lines: string[]; log: ReturnType<typeof createLogger> } {
   const lines: string[] = [];
@@ -110,6 +110,47 @@ describe("cleartext proxy", () => {
     } finally {
       await proxy.close();
       await new Promise<void>((resolve) => target.close(() => resolve()));
+    }
+  });
+
+  it("keeps the loopback exceptions while disabling the implicit bypass", () => {
+    // `<-loopback>` turns Chromium's implicit bypass back off: without it the
+    // browser also exempts link-local addresses on its own, and a redirect to
+    // cleartext there would never reach the proxy. The loopback hosts stay
+    // listed, so a local page still talks direct.
+    const entries = PROXY_BYPASS.split(",");
+    assert.ok(entries.includes("127.0.0.1"), "loopback stays direct");
+    assert.ok(entries.includes("localhost"), "loopback stays direct");
+    assert.ok(entries.includes("[::1]"), "loopback stays direct");
+    assert.ok(entries.includes("<-loopback>"), "the implicit bypass must stay off");
+  });
+
+  it("refuses cleartext to a link-local address", async () => {
+    // The classic redirect target: with the implicit bypass on, Chromium would
+    // not even send this through the proxy. The request below goes to the
+    // proxy itself, so nothing leaves the machine either way.
+    const { log } = captureLogger();
+    const proxy = await startPolicyProxy(log);
+    try {
+      const status = await new Promise<number>((resolve, reject) => {
+        const req = request(
+          {
+            host: "127.0.0.1",
+            port: proxy.port,
+            method: "GET",
+            path: "http://169.254.169.254/latest/meta-data/",
+          },
+          (res) => {
+            res.resume();
+            resolve(res.statusCode ?? 0);
+          },
+        );
+        req.on("error", reject);
+        req.end();
+      });
+      assert.equal(status, 403);
+    } finally {
+      await proxy.close();
     }
   });
 

@@ -8,9 +8,14 @@
  * walked to plain `http` on another host and handed credentials.
  *
  * The browser is therefore launched behind this proxy: `CONNECT` (TLS, opaque
- * to us) is tunnelled, and every other request is refused with `403`. Chromium
- * keeps its implicit loopback bypass, so a local page never travels through
- * here and this proxy only ever sees traffic that would leave the machine.
+ * to us) is tunnelled, and every other request is refused with `403`. The
+ * bypass list carries `<-loopback>` so Chromium's *implicit* bypass stays off:
+ * without it Chromium also exempts link-local addresses (`169.254.0.0/16`,
+ * `fe80::/10`) from the proxy on its own — and a redirect hop never comes back
+ * to a route handler, so that cleartext would leave the machine unseen. The
+ * explicit loopback entries restore the intended exceptions, so a local page
+ * still talks direct and this proxy only ever sees traffic that would leave
+ * the machine.
  */
 
 import { once } from "node:events";
@@ -19,8 +24,14 @@ import { connect } from "node:net";
 
 import { redactUrl, type Logger } from "./log.js";
 
-/** Hosts the browser talks to directly: the same set `transportAllowed` allows. */
-export const PROXY_BYPASS = "127.0.0.1,localhost,[::1]";
+/**
+ * Hosts the browser talks to directly: the same set `transportAllowed` allows,
+ * plus `<-loopback>`, which turns Chromium's implicit bypass back off. Without
+ * it Chromium exempts link-local addresses on its own, and a redirect to
+ * cleartext there would never reach this proxy; the explicit entries keep the
+ * intended loopback exceptions.
+ */
+export const PROXY_BYPASS = "127.0.0.1,localhost,[::1],<-loopback>";
 
 export interface PolicyProxy {
   /** `http://127.0.0.1:<port>`, for `chromium.launch({ proxy })`. */
