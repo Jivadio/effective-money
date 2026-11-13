@@ -17,9 +17,10 @@
 //!
 //! # Privacy
 //!
-//! Nothing here decides visibility (that is `services`, via the single
-//! `visible_account_ids` gate); these types only describe who *may* do what
-//! once visibility is established. Bank-provided text (`Account::name`,
+//! `services` decides visibility (via the single `visible_account_ids`
+//! gate); these types only describe who *may* do what. [`permission_on`] is
+//! the pure rule underneath: access comes from explicit grants only, never
+//! from the role. Bank-provided text (`Account::name`,
 //! [`Transaction::label`]) is untrusted input.
 //!
 //! The derived `Debug` impls on [`Account`], [`Transaction`] and
@@ -160,6 +161,24 @@ pub struct AccountAccess {
     pub account_id: AccountId,
     pub user_id: UserId,
     pub permission: Permission,
+}
+
+/// The permission `user_id` holds on `account_id`, from explicit grants only.
+///
+/// `None` means no access at all: the account belongs to someone else's
+/// private space and must stay invisible. The member's [`Role`] plays no part,
+/// so an admin without a grant gets `None` too. If several grants match (a
+/// data error the store should prevent), the strongest one wins.
+pub fn permission_on(
+    accesses: &[AccountAccess],
+    user_id: UserId,
+    account_id: AccountId,
+) -> Option<Permission> {
+    accesses
+        .iter()
+        .filter(|access| access.user_id == user_id && access.account_id == account_id)
+        .map(|access| access.permission)
+        .max()
 }
 
 /// One set of bank credentials, owned by exactly one member. The credentials
@@ -408,6 +427,60 @@ mod tests {
         // Rank sanity: Owner covers Write covers Read.
         assert!(Permission::Owner > Permission::Write);
         assert!(Permission::Write > Permission::Read);
+    }
+
+    #[test]
+    fn private_accounts_stay_private() {
+        let alice = UserId::from_u128(1);
+        let bob = UserId::from_u128(2);
+        let alice_private = AccountId::from_u128(10);
+        let bob_private = AccountId::from_u128(20);
+        let joint = AccountId::from_u128(30);
+        let grant = |account_id, user_id, permission| AccountAccess {
+            account_id,
+            user_id,
+            permission,
+        };
+        let accesses = [
+            grant(alice_private, alice, Permission::Owner),
+            grant(bob_private, bob, Permission::Owner),
+            grant(joint, alice, Permission::Owner),
+            grant(joint, bob, Permission::Read),
+        ];
+        // Each member sees their own private account, never the other's.
+        assert_eq!(
+            permission_on(&accesses, alice, alice_private),
+            Some(Permission::Owner)
+        );
+        assert_eq!(permission_on(&accesses, alice, bob_private), None);
+        assert_eq!(permission_on(&accesses, bob, alice_private), None);
+        // A joint account is visible to both, each with their own grant.
+        assert_eq!(
+            permission_on(&accesses, alice, joint),
+            Some(Permission::Owner)
+        );
+        assert_eq!(permission_on(&accesses, bob, joint), Some(Permission::Read));
+        // No grant, no access: being an admin changes nothing, since the
+        // role is not even an input.
+        let admin = User {
+            id: UserId::from_u128(3),
+            household_id: HouseholdId::from_u128(1),
+            name: String::from("Test Admin"),
+            role: Role::Admin,
+        };
+        for account in [alice_private, bob_private, joint] {
+            assert_eq!(permission_on(&accesses, admin.id, account), None);
+        }
+        // Duplicate grants never weaken access, and never widen it to others.
+        let duplicated = [
+            grant(joint, bob, Permission::Read),
+            grant(joint, bob, Permission::Write),
+        ];
+        assert_eq!(
+            permission_on(&duplicated, bob, joint),
+            Some(Permission::Write)
+        );
+        assert_eq!(permission_on(&duplicated, alice, joint), None);
     }
 
     #[test]

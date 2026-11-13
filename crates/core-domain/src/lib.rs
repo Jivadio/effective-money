@@ -30,7 +30,7 @@ pub use date::{Date, InvalidDate};
 pub use household::{
     Account, AccountAccess, AccountIdentity, AccountKind, AccountSource, Action, CategorySource,
     Connection, Household, Permission, Role, SourceState, Transaction, TransactionStatus,
-    UnknownAccountKind, User, authoritative_source, normalize_iban,
+    UnknownAccountKind, User, authoritative_source, normalize_iban, permission_on,
 };
 pub use ids::{
     AccountId, AccountSourceId, CategoryId, ConnectionId, HouseholdId, InvalidId, TransactionId,
