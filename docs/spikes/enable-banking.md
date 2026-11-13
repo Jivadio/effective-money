@@ -465,11 +465,19 @@ which, together with `occurrence_index`, keeps both twins. Which of the two
 policies to pick is worth a line in the connector's own protocol notes; both keep
 the data, the difference is only which row inherits the bank's id.
 
-Pending rows are the case to watch: a `PDNG` transaction may carry no
-`entry_reference` at all, so it lands in the synthesized-id branch. The engine
-already expects that — M3c of the detailed plan replaces pending transactions
-without a stable id **wholesale** on each sync, and keeps a pending row that does
-have one until it is booked. The helper also drops id-less **booked** rows dated
+Pending rows are the case to watch, and the vendor has a rule for exactly this
+(FAQ, *Are there unique identifiers for transactions?*): "If an ASPSP provides a
+unique identifier for pending transactions (with the value PDNG in the status
+field) and that identifier remains unchanged after the transaction becomes
+booked (i.e., BOOK status), the API will also return `entry_reference` values for
+pending transactions. Otherwise, pending transactions should be excluded when
+matching transactions." Two consequences for the connector: a `PDNG` row that
+**does** carry an `entry_reference` is one whose id will survive booking, so keep
+it and let the booked version arrive under the same key; a `PDNG` row without one
+is one the bank does not intend to be matched by id — exclude it from id-based
+matching and leave it to the amount-and-date pairing of M3c, which replaces
+id-less pending transactions **wholesale** on each sync and keeps a pending row
+that does have an id until it is booked. The helper also drops id-less **booked** rows dated
 after `last_complete_day` on purpose, so a sync started mid-day loses nothing:
 they come back once their booking day is complete. That is one more reason the
 engine must pass `since` at the start of a full booking day.
