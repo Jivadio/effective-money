@@ -475,9 +475,20 @@ matching transactions." Two consequences for the connector: a `PDNG` row that
 **does** carry an `entry_reference` is one whose id will survive booking, so keep
 it and let the booked version arrive under the same key; a `PDNG` row without one
 is one the bank does not intend to be matched by id — exclude it from id-based
-matching and leave it to the amount-and-date pairing of M3c, which replaces
-id-less pending transactions **wholesale** on each sync and keeps a pending row
-that does have an id until it is booked. The helper also drops id-less **booked** rows dated
+matching and leave it to the amount-and-date pairing of M3c.
+
+**An identified pending row also needs a removal path, and the same FAQ says
+why**: before an ASPSP has settled a transaction, "its properties may still
+change or the transaction may even be cancelled". A cancelled pending row never
+reaches `BOOK`, so a rule of "keep it until it is booked" would leave a phantom
+row in the ledger and skew the displayed balance indefinitely. The removal rule
+that fits the rest of M3c: **drop an identified pending row once a sync covering
+its complete booking day no longer returns it** — by then the bank has spoken,
+and the row was cancelled or amended. M3c's 10-day unmatched expiry stays the
+backstop for rows whose day is not complete yet. This is a proposal for the
+ingestion step, not something a connector can enforce on its own (§ 9, item 11).
+
+The helper also drops id-less **booked** rows dated
 after `last_complete_day` on purpose, so a sync started mid-day loses nothing:
 they come back once their booking day is complete. That is one more reason the
 engine must pass `since` at the start of a full booking day.
@@ -656,6 +667,11 @@ fully offline.
     (§ 7.2). Document the silence, add a per-sync skipped count to the SDK, or
     fail the sync with `Broken` — a maintainer call, taken together with item 13
     below.
+11. **M3c needs a second ingestion rule**: how an identified pending row
+    disappears when the bank cancels it before booking, so the ledger does not
+    keep a phantom row. § 7.2 proposes dropping it once a sync over a complete
+    booking day stops returning it, with the 10-day expiry as backstop. Same
+    owner as item 9.
 
 ## 10. Still to confirm
 
