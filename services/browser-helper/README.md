@@ -125,7 +125,7 @@ add up to 100 s at most.
 
 - **Loopback only.** The socket is bound to `127.0.0.1`; there is no option to
   bind elsewhere.
-- **No secret in a log line.** A per-action debug line carries the op, its
+- **No secret in an action log line.** A per-action debug line carries the op, its
   index and safe scalars only (a timeout, a match length, an attribute name
   from a closed alphabet): no selector and no URL path, because masking cannot
   catch a short or word-shaped secret, so they are omitted rather than
