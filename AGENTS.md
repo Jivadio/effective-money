@@ -15,6 +15,7 @@ Solde is an open-source, self-hostable personal finance app for a household: Rus
 - `crates/api` REST API. `crates/mcp` MCP server.
 - `crates/connectors/*` bank connectors. `connector-sdk`: the `BankConnector` contract and DTOs, `ConnectorEnv` and `Clock`, `HttpClient` (redacted logs, fixture record/replay with a scrubber), `BrowserClient` (browser-helper client) and the `testkit` feature shared by connector tests. `fake-bank`: the reference connector to copy (also a demo bank, behind the non-default `bank-fake` registry feature). `registry`: manifests and per-connection factories of the enabled connectors. `enable-banking`, `trade-republic`, `banque-populaire`, `banque-postale`: placeholders. Allowed third-party crates: `crates/connectors/allowed-deps.toml`. Guide: `docs/connectors/writing-a-connector.md`.
 - `apps/server` the binary (`solde-server`). `apps/web` Vite + React + TypeScript SPA. UI work follows `DESIGN.md` (tokens, components, voice, EFIGS localization).
+- `services/browser-helper` the local browser-helper service (TypeScript + Playwright, its own `package-lock.json`, outside the pnpm workspace): it drives a throwaway browser for bank login steps and knows no bank. Its client is `BrowserClient` in `connector-sdk`. See its `README.md`.
 - `xtask` repo automation (`cargo xtask ...`). `supply-chain/` cargo-vet data. `docs/` documentation and decision records.
 
 ## Commands
@@ -38,6 +39,9 @@ pnpm --dir apps/web lint
 pnpm --dir apps/web typecheck
 pnpm --dir apps/web test
 pnpm --dir apps/web build
+
+npm --prefix services/browser-helper ci     # browser helper (once: npx playwright install chromium)
+npm --prefix services/browser-helper test
 
 docker build -t solde:ci .
 docker compose up                           # compose.sqlite.yaml for the SQLite variant

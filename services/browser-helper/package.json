@@ -1,0 +1,24 @@
+{
+  "name": "solde-browser-helper",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPL-3.0-or-later",
+  "description": "Local browser helper for Solde: drives a throwaway browser for bank login flows and knows no bank.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/src/main.js",
+    "test": "tsc && node --test \"dist/tests/*.test.js\""
+  },
+  "dependencies": {
+    "playwright": "1.65.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "typescript": "5.9.3"
+  }
+}
