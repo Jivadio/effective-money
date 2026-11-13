@@ -234,6 +234,43 @@ describe("session lifecycle", () => {
     }
   });
 
+  it("keeps the queue order behind a waiter that timed out", async () => {
+    const fake = fakeBrowser();
+    const sessions = manager({ launch: async () => fake.browser });
+    try {
+      const id = await sessions.create();
+      let releaseA!: () => void;
+      const gateA = new Promise<void>((resolve) => {
+        releaseA = resolve;
+      });
+      const running: string[] = [];
+      const first = sessions.use(id, async () => {
+        running.push("A");
+        await gateA;
+      });
+      first.catch(() => undefined);
+      await assert.rejects(
+        sessions.use(id, async () => {
+          running.push("B");
+        }, Date.now() + 50),
+        { name: "QueueTimeout" },
+      );
+      const third = sessions.use(id, async () => {
+        running.push("C");
+      });
+      // B gave up, but the queue still ends behind A: C must not run while A
+      // holds the page.
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      assert.deepEqual(running, ["A"]);
+      releaseA();
+      await first;
+      await third;
+      assert.deepEqual(running, ["A", "C"]);
+    } finally {
+      await sessions.stop();
+    }
+  });
+
   it("does not hand a closed session to queued work", async () => {
     const fake = fakeBrowser();
     const sessions = manager({ launch: async () => fake.browser });

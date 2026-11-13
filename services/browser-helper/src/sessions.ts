@@ -401,7 +401,9 @@ export class SessionManager {
    * its caller gave up — and the late callback never touches the page. A
    * queued request also re-checks that its session is still there when its
    * turn comes: a close, or a disconnect, in between answers `SessionNotFound`
-   * rather than handing a dead page on.
+   * rather than handing a dead page on. A waiter that gives up keeps its place
+   * until the predecessor is done, so the next one still runs after the
+   * running work, never beside it.
    */
   async use<T>(id: string, fn: (page: Page) => Promise<T>, deadline: number = Number.POSITIVE_INFINITY): Promise<T> {
     const entry = await this.#require(id);
@@ -412,13 +414,20 @@ export class SessionManager {
     });
     const previous = entry.tail;
     entry.tail = turn;
+    // Our slot resolves with the predecessor when we never acquire the turn:
+    // a waiter that times out must not let the next one jump ahead of running
+    // work. Set to release at once once the turn is ours.
+    let release: () => void = () => {
+      void previous.then(releaseTurn, releaseTurn);
+    };
     try {
       await this.#awaitTurn(previous, deadline);
       if (this.#sessions.get(id) !== entry) throw new SessionNotFound();
       if (Date.now() >= deadline) throw new QueueTimeout();
+      release = releaseTurn;
       return await fn(entry.page);
     } finally {
-      releaseTurn();
+      release();
       entry.busy -= 1;
       entry.lastUsed = Date.now();
     }
