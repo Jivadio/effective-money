@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/wsost/OstBrokerWeb/message.html",
+    "query": "param=0x00000001"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "text/html"
+    },
+    "body": "<html><head><title>Information - La Banque Postale</title></head><body><h2>Service indisponible</h2><p>Votre demande n'a pas pu aboutir. Merci de réessayer ultérieurement.</p></body></html>"
+  }
+}

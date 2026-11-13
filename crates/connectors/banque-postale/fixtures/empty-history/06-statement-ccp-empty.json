@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/voscomptes/canalXHTML/CCP/releves_ccp/init-releve_ccp.ea",
+    "query": "compte.numero=11111111-1111-1111-1111-111111111111&typeRecherche=5"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "text/html"
+    },
+    "body": "<p class=\"empty\">Aucune opération sur la période sélectionnée.</p>"
+  }
+}

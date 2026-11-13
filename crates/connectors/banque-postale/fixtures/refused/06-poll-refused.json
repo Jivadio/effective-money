@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/wsost/OstBrokerWeb/loginform",
+    "query": "TAM_OP=login&phase=3b&cu=attenteAF"
+  },
+  "response": {
+    "status": 302,
+    "headers": {
+      "location": "https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/message.html?param=AuthentAppRejected"
+    }
+  }
+}

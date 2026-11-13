@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/voscomptes/canalXHTML/identif.ea",
+    "query": "origin=particuliers"
+  },
+  "response": {
+    "status": 302,
+    "headers": {
+      "location": "/wsost/OstBrokerWeb/loginform"
+    }
+  }
+}

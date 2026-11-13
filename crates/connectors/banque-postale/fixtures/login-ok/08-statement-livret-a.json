@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/voscomptes/canalXHTML/CNE/releveCNE/init-releve_cne.ea",
+    "query": "compte.numero=22222222-2222-2222-2222-222222222222&typeRecherche=15"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "text/html"
+    },
+    "body": "<table class=\"list operations table-version2020\" id=\"mouvementsTable\"><tr class=\"row head\"><th class=\"col\">Date</th><th class=\"col\">Libellé</th><th class=\"col\">Montant</th></tr><tr class=\"row btn-full-lightbox\"><td class=\"col label col-date\"><span class=\"sorted-value\">01/10/2026</span></td><td class=\"col label col-libelle\">INTEREST PAYMENT</td><td class=\"col montant cell-right col-montant\"><span class=\"amount_positif\">+ 12,40 €</span></td><td class=\"col label col-montant-brut sr-only\">12.4</td></tr><tr class=\"row btn-full-lightbox\"><td class=\"col label col-date\"><span class=\"sorted-value\">05/09/2026</span></td><td class=\"col label col-libelle\">TRANSFER FROM CHECKING</td><td class=\"col montant cell-right col-montant\"><span class=\"amount_positif\">+ 500,00 €</span></td><td class=\"col label col-montant-brut sr-only\">500.0</td></tr></table>"
+  }
+}

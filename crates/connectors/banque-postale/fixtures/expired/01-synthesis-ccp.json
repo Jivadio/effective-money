@@ -1,0 +1,9 @@
+{
+  "request": { "method": "GET", "path": "/voscomptes/canalXHTML/comptesCommun/synthese_ccp/afficheSyntheseCCP-synthese_ccp.ea" },
+  "response": {
+    "status": 302,
+    "headers": {
+      "location": "https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform"
+    }
+  }
+}

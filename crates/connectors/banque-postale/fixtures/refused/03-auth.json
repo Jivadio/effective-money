@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/wsost/OstBrokerWeb/auth"
+  },
+  "response": {
+    "status": 302,
+    "headers": {
+      "location": "https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/message.html?param=AuthentInfoAF",
+      "set-cookie": "LBPSESSION=CANARY-7f3a9c; Path=/; HttpOnly"
+    }
+  }
+}

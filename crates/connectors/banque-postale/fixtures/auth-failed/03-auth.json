@@ -1,0 +1,8 @@
+{
+  "request": { "method": "POST", "path": "/wsost/OstBrokerWeb/auth" },
+  "response": {
+    "status": 200,
+    "headers": { "content-type": "text/html" },
+    "body": "<form id=\"form-xo-1\" method=\"post\" action=\"/wsost/OstBrokerWeb/auth\" name=\"formAccesCompte\" onSubmit=\"return false;\"><p class=\"error\">Invalid credentials, please check your identifier and code and try again.</p><div id=\"hidden\"><input type=\"hidden\" name=\"urlbackend\" value=\"%2Fvoscomptes%2FcanalXHTML%2Fidentif.ea%3Forigin%3Dparticuliers\" /><input type=\"hidden\" name=\"origin\" value=\"particuliers\" /><input type=\"hidden\" name=\"cv\" value=\"true\" /><input type=\"hidden\" name=\"cvvs\" value=\"\" /><input type=\"hidden\" id=\"iscd\" name=\"iscdName\" value=\"0\" /><input type=\"hidden\" id=\"clt\" name=\"cltName\" value=\"0\" /></div><input type=\"text\" id=\"identifiant\" maxlength=\"10\" name=\"username\" /><input type=\"text\" id=\"password\" name=\"password\" maxlength=\"6\" /></form>"
+  }
+}

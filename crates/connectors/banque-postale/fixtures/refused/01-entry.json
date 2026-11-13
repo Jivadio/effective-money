@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/voscomptes/canalXHTML/identif.ea",
+    "query": "origin=particuliers"
+  },
+  "response": {
+    "status": 302,
+    "headers": {
+      "location": "https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform",
+      "set-cookie": "LBPSESSION=CANARY-7f3a9c; Path=/; HttpOnly"
+    }
+  }
+}

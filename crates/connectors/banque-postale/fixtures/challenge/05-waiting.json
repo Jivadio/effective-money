@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/wsost/OstBrokerWeb/loginform",
+    "query": "TAM_OP=login&phase=3b&cu=attenteAF"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "text/html"
+    },
+    "body": "<html><head><title>Votre appareil de confiance - La Banque Postale</title></head><body><h2>Vous n'êtes pas sur votre appareil de confiance</h2><p>A notification has been sent to your phone.</p><script>var PPH = \"https://voscomptesenligne.labanquepostale.fr/wsost\";\nvar URL_AF_POLLING = \"/OstBrokerWeb/loginform?TAM_OP=login&phase=3b&cu=attenteAF\";</script></body></html>"
+  }
+}

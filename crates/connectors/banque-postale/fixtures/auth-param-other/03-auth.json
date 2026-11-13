@@ -1,0 +1,12 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/wsost/OstBrokerWeb/auth"
+  },
+  "response": {
+    "status": 302,
+    "headers": {
+      "location": "/wsost/OstBrokerWeb/message.html?param=0x00000001"
+    }
+  }
+}

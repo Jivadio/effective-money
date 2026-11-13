@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/voscomptes/canalXHTML/comptesCommun/synthese_ccp/afficheSyntheseCCP-synthese_ccp.ea"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "text/html"
+    },
+    "body": "<html><head><title>Connexion - La Banque Postale</title></head><body><form id=\"form-xo-1\" method=\"post\" action=\"/wsost/OstBrokerWeb/auth\" name=\"formAccesCompte\" onSubmit=\"return false;\"><input type=\"text\" id=\"identifiant\" maxlength=\"10\" name=\"username\" /><input type=\"text\" id=\"password\" name=\"password\" maxlength=\"6\" /></form></body></html>"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/voscomptes/canalXHTML/comptesCommun/synthese_ccp/afficheSyntheseCCP-synthese_ccp.ea"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "text/html"
+    },
+    "body": "<html><body><p>Le service est momentanément indisponible. Merci de réessayer ultérieurement.</p></body></html>"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/voscomptes/canalXHTML/comptesCommun/synthese_ccp/afficheSyntheseCCP-synthese_ccp.ea"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "text/html"
+    },
+    "body": "<ul><li><div class=\"account-resume2020 account-resume--titres\"><div class=\"cartridge\"><div class=\"account-data\"><h3 class=\"title\"><a href=\"https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/CNE/releveCNE/init-releve_cne.ea?compte.numero=44444444-4444-4444-4444-444444444444&amp;typeRecherche=15\"><span class=\"pseudo-h3\">Compte Titres </span><span>N° 000 00000004</span></a></h3></div><div class=\"account-amount\"><div class=\"account-amount-group\"><p class=\"amount-euro\"><span class=\"lib sr-only\">Solde </span>+ 1 500,00 €</p></div></div></div></div></li></ul>"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/voscomptes/canalXHTML/identif.ea",
+    "query": "origin=particuliers"
+  },
+  "response": {
+    "status": 403,
+    "headers": {
+      "content-type": "text/html"
+    },
+    "body": "<html><body><p>Accès refusé.</p></body></html>"
+  }
+}
