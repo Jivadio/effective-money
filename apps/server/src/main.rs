@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! Solde server binary.
 //!
-//! - `solde-server`: serve the API (configuration from the environment).
+//! - `solde-server`: serve the API and the web app (configuration from the
+//!   environment).
 //! - `solde-server admin export-key`: print the master key to stdout, for
 //!   a backup. The key is never printed or logged otherwise.
 
@@ -15,7 +16,7 @@ use solde_server::Config;
 const USAGE: &str = "\
 usage: solde-server [admin export-key]
 
-  (no command)        serve the API; configured by SOLDE_* environment variables
+  (no command)        serve the API and web app; configured by SOLDE_* environment variables
   admin export-key    print the master key (SOLDE_MASTER_KEY_FILE) to stdout";
 
 fn main() -> ExitCode {
@@ -61,17 +62,23 @@ fn serve() -> anyhow::Result<()> {
     // for the whole run (the sync engine will own it from M3).
     let master_key = solde_server::load_master_key(config.master_key_file.as_ref())?;
     tracing::info!("master key loaded");
+    let web = solde_server::load_web_assets(config.web_dir.as_ref())?;
+    if config.web_dir.is_none() {
+        tracing::warn!(
+            "SOLDE_WEB_DIR is not set: serving a placeholder page instead of the web app"
+        );
+    }
 
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
         .context("cannot start the async runtime")?
-        .block_on(run(config))?;
+        .block_on(run(config, web))?;
     drop(master_key);
     Ok(())
 }
 
-async fn run(mut config: Config) -> anyhow::Result<()> {
+async fn run(mut config: Config, web: solde_server::WebAssets) -> anyhow::Result<()> {
     if config.api.insecure_cookies {
         tracing::warn!(
             "SOLDE_INSECURE_COOKIES is set: the session cookie is sent over plain HTTP. \
@@ -94,7 +101,7 @@ async fn run(mut config: Config) -> anyhow::Result<()> {
     );
 
     config.api.setup_code = solde_server::setup_code(&*store).await?;
-    let app = solde_server::app(store, config.api)?;
+    let app = solde_server::app(store, config.api, web)?;
 
     let listener = tokio::net::TcpListener::bind(config.listen_addr)
         .await

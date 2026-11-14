@@ -1,0 +1,100 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+/* Design tokens, copied verbatim from DESIGN.md ("Tokens in CSS"). Keep them in sync. */
+:root, [data-theme="light"] {
+  --bg: #f5f5f2;
+  --surface: #ffffff;
+  --surface-sunken: #ebebe6;
+  --surface-inverse: #121417;
+  --on-inverse: #f5f5f2;
+  --on-inverse-muted: #9aa0a8;
+  --border: #e3e3dc;
+  --border-strong: #8a8f96;
+  --ink: #121417;
+  --ink-muted: #5a5f66;
+  --ink-disabled: #a3a7ad;
+  --accent: #121417;
+  --accent-hover: #2b2f35;
+  --on-accent: #ffffff;
+  --highlight: #c8f04a;
+  --on-highlight: #121417;
+  --highlight-soft: #eef9c8;
+  --positive: #0a7a45;
+  --positive-soft: #e3f3ea;
+  --negative: #c0391f;
+  --negative-soft: #fbe7e3;
+  --warning: #8f5e08;
+  --warning-soft: #f8eed9;
+  --focus: #1f5fd6;
+  --chart-1: var(--highlight);
+  --chart-2: #2c4a3e;
+  --chart-3: #7f93a8;
+  --chart-4: #c99a3c;
+  --chart-5: #c9c9c1;
+  --scrim: rgba(18,20,23,0.4);
+  --shadow-card: 0 1px 2px rgba(18,20,23,0.05);
+  --shadow-pop: 0 8px 24px rgba(18,20,23,0.12), 0 2px 6px rgba(18,20,23,0.06);
+}
+[data-theme="dark"] {
+  --bg: #0e0f11;
+  --surface: #17191c;
+  --surface-sunken: #0a0b0c;
+  --surface-inverse: #f2f2ee;
+  --on-inverse: #121417;
+  --on-inverse-muted: #5a5f66;
+  --border: #2a2d32;
+  --border-strong: #6b717a;
+  --ink: #f2f2ee;
+  --ink-muted: #9aa0a8;
+  --ink-disabled: #55595f;
+  --accent: #f2f2ee;
+  --accent-hover: #d9d9d3;
+  --on-accent: #121417;
+  --highlight: #c8f04a;
+  --on-highlight: #121417;
+  --highlight-soft: #2a3311;
+  --positive: #4cc38a;
+  --positive-soft: #13281d;
+  --negative: #ff7a63;
+  --negative-soft: #331512;
+  --warning: #e8b04a;
+  --warning-soft: #2e230d;
+  --focus: #7aa7ff;
+  --chart-1: var(--highlight);
+  --chart-2: #7fb59c;
+  --chart-3: #8fa6be;
+  --chart-4: #d9ad55;
+  --chart-5: #4a4e55;
+  --scrim: rgba(0,0,0,0.6);
+  --shadow-card: none;
+  --shadow-pop: 0 8px 24px rgba(0,0,0,0.5);
+}
+:root {
+  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+  --control-sm: 32px;
+  --control-md: 44px;
+  --control-lg: 56px;
+  --icon-tile: 40px;
+}
+.amount-xl { font: 600 40px/44px var(--font-sans); letter-spacing: -0.025em; font-variant-numeric: tabular-nums; }
+.amount-lg { font: 600 28px/32px var(--font-sans); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.amount-md { font: 600 16px/22px var(--font-sans); font-variant-numeric: tabular-nums; }
+.amount-sm { font: 500 13px/18px var(--font-sans); font-variant-numeric: tabular-nums; }
+.title { font: 600 24px/30px var(--font-sans); letter-spacing: -0.015em; font-variant-numeric: tabular-nums; }
+.heading { font: 600 16px/22px var(--font-sans); letter-spacing: -0.005em; font-variant-numeric: tabular-nums; }
+.body { font: 400 15px/22px var(--font-sans); font-variant-numeric: tabular-nums; }
+.label { font: 500 13px/18px var(--font-sans); font-variant-numeric: tabular-nums; }
+.caption { font: 400 12px/16px var(--font-sans); font-variant-numeric: tabular-nums; }
+.overline { font: 600 11px/14px var(--font-sans); letter-spacing: 0.06em; text-transform: uppercase; font-variant-numeric: tabular-nums; }

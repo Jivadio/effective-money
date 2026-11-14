@@ -10,7 +10,12 @@ async fn app() -> axum::Router {
     let store = solde_services::connect("sqlite::memory:")
         .await
         .expect("in-memory store");
-    solde_server::app(store, solde_api::ApiConfig::default()).expect("app")
+    solde_server::app(
+        store,
+        solde_api::ApiConfig::default(),
+        solde_server::WebAssets::placeholder(),
+    )
+    .expect("app")
 }
 
 #[tokio::test]

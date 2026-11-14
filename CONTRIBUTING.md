@@ -35,7 +35,11 @@ SOLDE_TEST_DATABASE_URL=postgres://postgres:test@127.0.0.1:55432/solde_test carg
 
 Changing the database schema? Add a migration with the same file name in both `crates/storage/migrations/postgres/` and `crates/storage/migrations/sqlite/`; `cargo xtask schema-parity` tells you if they drift apart.
 
-Changing the REST API? Run `cargo xtask openapi` to refresh `apps/web/src/api/openapi.json` and commit it; CI checks it with `cargo xtask openapi --check`.
+Changing the REST API? Run `cargo xtask openapi` to refresh `apps/web/src/api/openapi.json`, then `pnpm --dir apps/web api:generate` to refresh the web app's typed client (`src/api/schema.d.ts`), and commit both; CI checks them with `cargo xtask openapi --check` and `pnpm --dir apps/web api:check`.
+
+Adding text to the web UI? Put it in `apps/web/src/i18n/locales/en.json` (ICU message format), and add the same key with the English text to the `fr`, `it`, `de` and `es` files; translators take it from there. The tests check that every catalogue has the same keys and that components contain no hard-coded copy. `pnpm web:dev` proxies `/api` to a server on port 8080 (`SOLDE_API_URL` changes it).
+
+Want the server to serve your local web build? Run `pnpm web:build` and add `SOLDE_WEB_DIR=apps/web/dist` to the `cargo run` line above; without it, `/` shows a short placeholder page.
 
 The Rust version is pinned in `rust-toolchain.toml`, and pnpm in `package.json`. Prefer containers? `docker compose up` runs the server with PostgreSQL (`docker compose -f compose.sqlite.yaml up` for SQLite).
 
