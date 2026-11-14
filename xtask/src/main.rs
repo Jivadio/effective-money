@@ -5,6 +5,7 @@ mod check_deps;
 mod connector_lint;
 mod fixtures_scrub;
 mod rulesets;
+mod schema_parity;
 
 use std::process::ExitCode;
 
@@ -18,7 +19,7 @@ commands:
   rulesets check          compare .github/rulesets/main.json to the live ruleset
   rulesets apply          create/update the live ruleset from .github/rulesets/main.json
   openapi                 not implemented yet (planned with the REST API)
-  schema-parity           not implemented yet (planned with the storage layer)
+  schema-parity           check that the Postgres and SQLite migrations define the same schema
   connector-smoke <bank>  not implemented yet (planned with the direct connectors)";
 
 fn main() -> ExitCode {
@@ -29,10 +30,7 @@ fn main() -> ExitCode {
         ["rulesets", "check"] => rulesets::check(),
         ["rulesets", "apply"] => rulesets::apply(),
         ["openapi", ..] => not_implemented("openapi", "the REST API lands (OpenAPI drift check)"),
-        ["schema-parity", ..] => not_implemented(
-            "schema-parity",
-            "the storage layer lands (Postgres/SQLite schema parity)",
-        ),
+        ["schema-parity"] => schema_parity::run(check_deps::workspace_root()),
         ["fixtures-scrub-check"] => fixtures_scrub::run(check_deps::workspace_root()),
         ["clippy-connectors"] => connector_lint::run_clippy(check_deps::workspace_root()),
         ["connector-smoke", ..] => {

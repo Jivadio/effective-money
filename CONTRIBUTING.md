@@ -24,6 +24,15 @@ cargo run -p solde-server    # serves on http://localhost:8080, try /healthz
 pnpm web:dev              # web UI dev server
 ```
 
+The storage tests run on SQLite out of the box. To run them on PostgreSQL too, point `SOLDE_TEST_DATABASE_URL` at a scratch database (each test uses its own schema and cleans up). Without it the PostgreSQL tests skip, except when the `CI` variable is set: there they fail, so CI never passes without PostgreSQL.
+
+```sh
+docker run -d --rm --name solde-pg-test -e POSTGRES_PASSWORD=test -e POSTGRES_DB=solde_test -p 55432:5432 postgres:16-alpine
+SOLDE_TEST_DATABASE_URL=postgres://postgres:test@127.0.0.1:55432/solde_test cargo test -p solde-storage
+```
+
+Changing the database schema? Add a migration with the same file name in both `crates/storage/migrations/postgres/` and `crates/storage/migrations/sqlite/`; `cargo xtask schema-parity` tells you if they drift apart.
+
 The Rust version is pinned in `rust-toolchain.toml`, and pnpm in `package.json`. Prefer containers? `docker compose up` runs the server with PostgreSQL (`docker compose -f compose.sqlite.yaml up` for SQLite).
 
 ## Sending a change
