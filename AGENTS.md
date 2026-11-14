@@ -4,12 +4,12 @@ Guidance for AI coding agents (and humans in a hurry). Tool-agnostic; `CLAUDE.md
 
 ## Project
 
-Solde is an open-source, self-hostable personal finance app for a household: Rust core, React web app, planned Tauri desktop app and MCP server. It is read-only: it never initiates transfers or payments. The UI will ship in English, French, Italian, German and Spanish (not translated yet). Bank connectors (Banque Populaire, La Banque Postale, Trade Republic) and Enable Banking are planned. Status: early days (Milestone 0 built, Milestone 2 in progress): workspace skeleton, `GET /healthz`, CI, governance, the connector SDK (with the `fake-bank` reference connector), the `core-domain` household model (`Money`, `Date`, typed ids, account permissions) and the `storage` layer (PostgreSQL and SQLite, M2 schema) exist; most other crates, including the real bank connectors, are empty placeholders. Do not describe planned features as implemented.
+Solde is an open-source, self-hostable personal finance app for a household: Rust core, React web app, planned Tauri desktop app and MCP server. It is read-only: it never initiates transfers or payments. The UI will ship in English, French, Italian, German and Spanish (not translated yet). Bank connectors (Banque Populaire, La Banque Postale, Trade Republic) and Enable Banking are planned. Status: early days (Milestone 0 built, Milestone 2 in progress): workspace skeleton, `GET /healthz`, CI, governance, the connector SDK (with the `fake-bank` reference connector), the `core-domain` household model (`Money`, `Date`, typed ids, account permissions), the `storage` layer (PostgreSQL and SQLite, M2 schema) and the `services` use cases (household setup, invitations, manual accounts, sharing, manual transactions, all behind the `visible_account_ids` gate) exist; most other crates, including the real bank connectors, are empty placeholders. Do not describe planned features as implemented.
 
 ## Repo map
 
 - `crates/core-domain` pure domain types and rules, no I/O.
-- `crates/storage` database access: the `Store` trait, one SQLx implementation for Postgres and SQLite (per-backend differences only in `src/overrides.rs`) and mirrored migrations in `migrations/{postgres,sqlite}/`. Contract tests in `tests/contract.rs` cover every `Store` method on both backends. Report: `docs/spikes/S5-sqlx-dual-backend.md`. `crates/services` use cases and authorization.
+- `crates/storage` database access: the `Store` trait, one SQLx implementation for Postgres and SQLite (per-backend differences only in `src/overrides.rs`) and mirrored migrations in `migrations/{postgres,sqlite}/`. Contract tests in `tests/contract.rs` cover every `Store` method on both backends. Report: `docs/spikes/S5-sqlx-dual-backend.md`. `crates/services` use cases and authorization: every use case takes a `Viewer`, visibility goes through `visible_account_ids` only, and an account the viewer cannot see answers `NotFound`, never `Forbidden`. It generates and hashes tokens (SHA-256) for invitations, sessions and API tokens; password hashing (Argon2id) will belong to `api`. It re-exports the storage types its callers need (`Store`, `connect`, ...), so they reach `storage` only through it. Authorization tests in `tests/authorization.rs` run on both backends.
 - `crates/categorization`, `analytics`, `pricing` pure logic built on `core-domain`.
 - `crates/secrets` master key and credential vault. `crates/sync` sync engine, the only user of `secrets`. `crates/sync-facade` narrow interface to `sync` for API/MCP.
 - `crates/api` REST API. `crates/mcp` MCP server.
@@ -23,7 +23,7 @@ Solde is an open-source, self-hostable personal finance app for a household: Rus
 ```sh
 cargo build --workspace --locked
 cargo nextest run --workspace --locked      # unit and integration tests
-# storage tests also run on Postgres when SOLDE_TEST_DATABASE_URL is set, e.g.
+# storage and services tests also run on Postgres when SOLDE_TEST_DATABASE_URL is set, e.g.
 # postgres://postgres:test@127.0.0.1:55432/solde_test (CI uses a postgres:16 service; with CI set they fail instead of skipping)
 cargo test --workspace --doc --locked       # doctests
 cargo fmt --all --check                     # fix with: cargo fmt --all

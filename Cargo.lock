@@ -1759,11 +1759,18 @@ dependencies = [
 name = "solde-services"
 version = "0.0.0"
 dependencies = [
+ "chrono",
+ "getrandom 0.4.3",
+ "sha2 0.11.1",
  "solde-analytics",
  "solde-categorization",
  "solde-core-domain",
  "solde-pricing",
  "solde-storage",
+ "sqlx",
+ "tokio",
+ "uuid",
+ "zeroize",
 ]
 
 [[package]]

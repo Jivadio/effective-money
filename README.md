@@ -4,7 +4,7 @@
 
 Solde **reads** your accounts and never moves money: no transfers, no payments. Its job is to show you, in three seconds, where you stand.
 
-> **Early days, come build it with us!** The project has just started: the repository skeleton, CI, the connector SDK (with a fake demo bank), the household model and the PostgreSQL/SQLite storage layer are in place, and the features below are plans, not things you can use yet. Please don't point it at real bank credentials for now.
+> **Early days, come build it with us!** The project has just started: the repository skeleton, CI, the connector SDK (with a fake demo bank), the household model, the PostgreSQL/SQLite storage layer and the household use cases (accounts, sharing, manual transactions) are in place, and the features below are plans, not things you can use yet. Please don't point it at real bank credentials for now.
 
 <!-- Screenshots: none yet. Placeholder until the first usable release (0.1.0). -->
 *Screenshots: not available yet.*
