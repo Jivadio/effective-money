@@ -8,7 +8,14 @@ repository.workspace = true
 publish = false
 
 [dependencies]
+async-trait.workspace = true
+chrono.workspace = true
 solde-core-domain = { path = "../core-domain" }
+sqlx.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+tokio.workspace = true
 
 [lints]
 workspace = true

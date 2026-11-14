@@ -4,12 +4,12 @@ Guidance for AI coding agents (and humans in a hurry). Tool-agnostic; `CLAUDE.md
 
 ## Project
 
-Solde is an open-source, self-hostable personal finance app for a household: Rust core, React web app, planned Tauri desktop app and MCP server. It is read-only: it never initiates transfers or payments. The UI will ship in English, French, Italian, German and Spanish (not translated yet). Bank connectors (Banque Populaire, La Banque Postale, Trade Republic) and Enable Banking are planned. Status: early days (Milestone 0): workspace skeleton, `GET /healthz`, CI, governance, the connector SDK (with the `fake-bank` reference connector) and the `core-domain` household model (`Money`, `Date`, typed ids, account permissions) exist; most other crates, including the real bank connectors, are empty placeholders. Do not describe planned features as implemented.
+Solde is an open-source, self-hostable personal finance app for a household: Rust core, React web app, planned Tauri desktop app and MCP server. It is read-only: it never initiates transfers or payments. The UI will ship in English, French, Italian, German and Spanish (not translated yet). Bank connectors (Banque Populaire, La Banque Postale, Trade Republic) and Enable Banking are planned. Status: early days (Milestone 0 built, Milestone 2 in progress): workspace skeleton, `GET /healthz`, CI, governance, the connector SDK (with the `fake-bank` reference connector), the `core-domain` household model (`Money`, `Date`, typed ids, account permissions) and the `storage` layer (PostgreSQL and SQLite, M2 schema) exist; most other crates, including the real bank connectors, are empty placeholders. Do not describe planned features as implemented.
 
 ## Repo map
 
 - `crates/core-domain` pure domain types and rules, no I/O.
-- `crates/storage` database access (Postgres and SQLite). `crates/services` use cases and authorization.
+- `crates/storage` database access: the `Store` trait, one SQLx implementation for Postgres and SQLite (per-backend differences only in `src/overrides.rs`) and mirrored migrations in `migrations/{postgres,sqlite}/`. Contract tests in `tests/contract.rs` cover every `Store` method on both backends. Report: `docs/spikes/S5-sqlx-dual-backend.md`. `crates/services` use cases and authorization.
 - `crates/categorization`, `analytics`, `pricing` pure logic built on `core-domain`.
 - `crates/secrets` master key and credential vault. `crates/sync` sync engine, the only user of `secrets`. `crates/sync-facade` narrow interface to `sync` for API/MCP.
 - `crates/api` REST API. `crates/mcp` MCP server.
@@ -23,12 +23,15 @@ Solde is an open-source, self-hostable personal finance app for a household: Rus
 ```sh
 cargo build --workspace --locked
 cargo nextest run --workspace --locked      # unit and integration tests
+# storage tests also run on Postgres when SOLDE_TEST_DATABASE_URL is set, e.g.
+# postgres://postgres:test@127.0.0.1:55432/solde_test (CI uses a postgres:16 service; with CI set they fail instead of skipping)
 cargo test --workspace --doc --locked       # doctests
 cargo fmt --all --check                     # fix with: cargo fmt --all
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo xtask check-deps                      # crate dependency rules + connector guardrails
 cargo xtask fixtures-scrub-check            # no real-looking data in connector fixtures
 cargo xtask clippy-connectors               # clippy on bank crates, disallowed_* lints forbidden
+cargo xtask schema-parity                   # Postgres and SQLite migrations define the same schema
 cargo deny --locked check
 cargo audit --deny warnings
 cargo vet --locked
@@ -58,6 +61,7 @@ Toolchain is pinned in `rust-toolchain.toml`; pnpm in the root `package.json`. C
 - Bank connector crates declare as direct dependencies only `connector-sdk` plus entries in `allowed-deps.toml` (the SDK is the trusted boundary; what it pulls in is not restricted); no connector, SDK included, may reach `core-domain` or `storage`. All HTTP/WebSocket/browser traffic goes through the SDK clients. Bank connectors also may not use `std::process`, `std::env`, `std::os`, `std::fs` (outside tests), build their own `HttpClient`/`LoginContext`, or use build scripts, proc-macros or lint opt-outs (clippy config under `crates/connectors/`, `check-deps`, `clippy-connectors`); these are guardrails, review is the boundary. Connectors read dates from the SDK `Clock`, never the system time. Guide: `docs/connectors/writing-a-connector.md`.
 - `unsafe` is forbidden. `unwrap()` is denied outside tests (use `?` or `expect` with a reason in tests only). Panic payloads must never be logged (they can contain secrets); the panic hook logs location and backtrace only.
 - Money is integer minor units, never floats.
+- Schema changes go in both `crates/storage/migrations/postgres/` and `.../sqlite/` (same file name, same tables, columns and indexes; `cargo xtask schema-parity`). Booking dates are stored for years 0000-9999 only.
 
 ## Security rules
 
@@ -79,4 +83,4 @@ Toolchain is pinned in `rust-toolchain.toml`; pnpm in the root `package.json`. C
 
 ## Before you finish
 
-Run what CI runs: `cargo fmt --all --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo nextest run --workspace --locked`, `cargo xtask check-deps`, `cargo xtask fixtures-scrub-check`, `cargo xtask clippy-connectors`, and for web changes `pnpm --dir apps/web lint`, `test` and `build`. Check that the docs still match the change (see Workflow). Report honestly what you ran and what failed.
+Run what CI runs: `cargo fmt --all --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo nextest run --workspace --locked`, `cargo xtask check-deps`, `cargo xtask fixtures-scrub-check`, `cargo xtask clippy-connectors`, `cargo xtask schema-parity`, and for web changes `pnpm --dir apps/web lint`, `test` and `build`. Check that the docs still match the change (see Workflow). Report honestly what you ran and what failed.

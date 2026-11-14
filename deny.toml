@@ -5,7 +5,17 @@ all-features = true
 [advisories]
 version = 2
 yanked = "deny"
-ignore = []
+ignore = [
+    # Bundled SQLite < 3.54 can return stale page-cache bytes when it opens a
+    # database together with a crafted `-wal` file of another page size.
+    # sqlx-sqlite 0.9.0 (latest) requires libsqlite3-sys >=0.30.1, <0.38.0
+    # (the lockfile has 0.37.0); the fix ships in libsqlite3-sys 0.39.
+    # Solde only opens its own database in its own data directory: whoever
+    # can plant that file pair can already read and write the data. Remove
+    # this entry as soon as an sqlx release allows libsqlite3-sys >= 0.39.
+    # Mirrored in .cargo/audit.toml for `cargo audit`.
+    { id = "RUSTSEC-2026-0459", reason = "local-only, needs attacker-written db+wal pair; no sqlx release with the fix yet" },
+]
 
 [licenses]
 version = 2

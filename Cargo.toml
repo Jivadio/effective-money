@@ -43,6 +43,9 @@ regex = "1"
 reqwest = { version = "0.13", default-features = false, features = ["rustls-no-provider"] }
 rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
 serde = { version = "1", features = ["derive"] }
+# PostgreSQL and SQLite (bundled) through one driver; TLS via rustls with the
+# ring provider and webpki roots only (no OpenSSL, no aws-lc).
+sqlx = { version = "0.9", default-features = false, features = ["chrono", "postgres", "runtime-tokio", "sqlite-bundled", "tls-rustls-ring-webpki", "uuid"] }
 serde_json = "1"
 sha2 = "0.11"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "signal"] }
@@ -50,6 +53,7 @@ toml = "1"
 tower = { version = "0.5", features = ["util"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
+uuid = { version = "1", default-features = false, features = ["std", "v7"] }
 webpki-roots = "1"
 zeroize = "1"
 
