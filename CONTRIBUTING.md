@@ -41,7 +41,14 @@ Adding text to the web UI? Put it in `apps/web/src/i18n/locales/en.json` (ICU me
 
 Want the server to serve your local web build? Run `pnpm web:build` and add `SOLDE_WEB_DIR=apps/web/dist` to the `cargo run` line above; without it, `/` shows a short placeholder page.
 
-The Rust version is pinned in `rust-toolchain.toml`, and pnpm in `package.json`. Prefer containers? `docker compose up` runs the server with PostgreSQL (`docker compose -f compose.sqlite.yaml up` for SQLite).
+The Rust version is pinned in `rust-toolchain.toml`, and pnpm in `package.json`. Prefer containers? `docker compose up` runs the server with PostgreSQL (`docker compose -f compose.sqlite.yaml up` for SQLite); [docs/self-hosting.md](docs/self-hosting.md) has the details.
+
+Touching the `Dockerfile`, the compose files or startup? Run the end-to-end check, as CI does in its `e2e-compose` job. It needs Docker and curl, builds the image, and uses its own throwaway Compose project on port 18080 (`SOLDE_E2E_PORT` changes it), so it never touches an instance you already run:
+
+```sh
+scripts/e2e-compose.sh compose.yaml
+scripts/e2e-compose.sh compose.sqlite.yaml
+```
 
 ## Sending a change
 

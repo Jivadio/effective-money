@@ -172,6 +172,14 @@ jobs:
           tags: solde:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Image under 100 MB
+        run: |
+          size=$(docker image inspect solde:ci --format '{{.Size}}')
+          echo "solde:ci is $((size / 1000000)) MB"
+          if [ "$size" -ge 100000000 ]; then
+            echo "the image must stay under 100 MB ($size bytes)" >&2
+            exit 1
+          fi
       - name: Smoke test /healthz
         run: |
           # The server refuses to start without a master key and a database.
@@ -184,13 +192,30 @@ jobs:
             -e SOLDE_DATABASE_URL=sqlite:///data/solde.db \
             solde:ci
           for _ in $(seq 1 20); do
-            if curl -fsS http://127.0.0.1:8080/healthz && curl -fsS http://127.0.0.1:8080/api/v1/meta; then
+            if curl -fsS http://127.0.0.1:8080/healthz && curl -fsS http://127.0.0.1:8080/api/v1/meta \
+              && curl -fsS http://127.0.0.1:8080/ | grep -q 'id="root"'; then
               docker rm -f solde; exit 0
             fi
             sleep 1
           done
           docker logs solde
           exit 1
+
+  # AC1: `docker compose up` on a blank machine gives a working instance, on
+  # both variants. See scripts/e2e-compose.sh for what is checked.
+  e2e-compose:
+    name: e2e-compose (${{ matrix.compose }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        compose: [compose.yaml, compose.sqlite.yaml]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: scripts/e2e-compose.sh "${{ matrix.compose }}"
 
   gitleaks:
     name: gitleaks

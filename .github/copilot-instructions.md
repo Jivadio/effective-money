@@ -9,7 +9,7 @@ Full guidance lives in [AGENTS.md](../AGENTS.md). Most important rules:
 - `unsafe` is forbidden, `unwrap()` is denied outside tests, and panic payloads must never be logged.
 - Secret-holding types have no `Debug`/`Serialize`/`Clone`. Unattended syncs never trigger 2FA. Bank-provided text is untrusted.
 - UI follows `DESIGN.md`: CSS token variables only, no hard-coded copy (keys in `apps/web/src/i18n/locales/en.json`, same keys in every EFIGS catalogue), locale-aware amount and date formatting, money as integer minor units parsed without floats, with the decimals from the API's `minor_digits` (ISO 4217), never from `Intl`.
-- The server sends the web app with a strict CSP (`script-src 'self'`, `style-src 'self'`, no `'unsafe-inline'`): no inline `<script>`, `<style>` or `style="..."` in `apps/web/index.html`, no third-party origins. Unknown `/api` paths must stay JSON 404s.
+- The server sends the web app with a strict CSP (`script-src 'self'`, `style-src 'self'`, no `'unsafe-inline'`): no inline `<script>`, `<style>` or `style="..."` in `apps/web/index.html`, no third-party origins. Unknown `/api` paths must stay JSON 404s. Changing the `Dockerfile`, compose files or startup: run `scripts/e2e-compose.sh` on both compose files.
 - Conventional Commits, signed off (`git commit -s`). Add tests with behaviour changes.
 - When a change affects what the docs describe (features, architecture, rules, commands, names), update the affected docs in the same PR: `README.md`, `AGENTS.md`, `CONTRIBUTING.md`, `DESIGN.md`, `docs/` and `.github/copilot-instructions.md`.
 - Before finishing: `cargo fmt --all --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo nextest run --workspace --locked`.
