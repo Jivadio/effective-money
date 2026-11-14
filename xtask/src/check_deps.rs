@@ -92,7 +92,10 @@ const ALLOWED_EDGES: &[(&str, &[&str])] = &[
     ("solde-connector-trade-republic", &["solde-connector-sdk"]),
     ("solde-connector-banque-populaire", &["solde-connector-sdk"]),
     ("solde-connector-banque-postale", &["solde-connector-sdk"]),
-    ("solde-server", &["solde-api", "solde-mcp", "solde-sync"]),
+    (
+        "solde-server",
+        &["solde-api", "solde-mcp", "solde-services", "solde-sync"],
+    ),
     ("xtask", &[]),
 ];
 

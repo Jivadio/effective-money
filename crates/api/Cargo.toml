@@ -8,8 +8,31 @@ repository.workspace = true
 publish = false
 
 [dependencies]
+argon2.workspace = true
+axum.workspace = true
+chrono.workspace = true
+# Random salts for password hashes.
+getrandom.workspace = true
+ipnet.workspace = true
+serde.workspace = true
+solde-core-domain = { path = "../core-domain" }
 solde-services = { path = "../services" }
 solde-sync-facade = { path = "../sync-facade" }
+# Password hashing runs on the blocking pool, bounded by a semaphore.
+tokio = { workspace = true, features = ["sync"] }
+tracing.workspace = true
+# `uuid` only enables the `uuid` string format in the schema.
+utoipa = { workspace = true, features = ["uuid"] }
+# Wipes the one-time setup code from memory on drop.
+zeroize.workspace = true
+
+[dev-dependencies]
+http-body-util.workspace = true
+serde_json.workspace = true
+# Creates a throwaway PostgreSQL schema per test (SOLDE_TEST_DATABASE_URL).
+sqlx.workspace = true
+tower.workspace = true
+uuid.workspace = true
 
 [lints]
 workspace = true

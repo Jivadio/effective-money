@@ -20,6 +20,10 @@ criteria = "safe-to-deploy"
 version = "1.0.104"
 criteria = "safe-to-deploy"
 
+[[exemptions.argon2]]
+version = "0.6.0"
+criteria = "safe-to-deploy"
+
 [[exemptions.async-trait]]
 version = "0.1.92"
 criteria = "safe-to-deploy"
@@ -52,8 +56,16 @@ criteria = "safe-to-deploy"
 version = "0.23.1"
 criteria = "safe-to-deploy"
 
+[[exemptions.base64ct]]
+version = "1.8.3"
+criteria = "safe-to-deploy"
+
 [[exemptions.bitflags]]
 version = "2.13.2"
+criteria = "safe-to-deploy"
+
+[[exemptions.blake2]]
+version = "0.11.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.block-buffer]]
@@ -476,8 +488,16 @@ criteria = "safe-to-deploy"
 version = "0.9.12"
 criteria = "safe-to-deploy"
 
+[[exemptions.password-hash]]
+version = "0.6.1"
+criteria = "safe-to-deploy"
+
 [[exemptions.percent-encoding]]
 version = "2.3.2"
+criteria = "safe-to-deploy"
+
+[[exemptions.phc]]
+version = "0.6.1"
 criteria = "safe-to-deploy"
 
 [[exemptions.phf]]
@@ -870,6 +890,14 @@ criteria = "safe-to-deploy"
 
 [[exemptions.utf_types]]
 version = "1.0.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.utoipa]]
+version = "6.0.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.utoipa-gen]]
+version = "6.0.1"
 criteria = "safe-to-deploy"
 
 [[exemptions.uuid]]

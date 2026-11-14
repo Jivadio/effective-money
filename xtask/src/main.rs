@@ -4,6 +4,7 @@
 mod check_deps;
 mod connector_lint;
 mod fixtures_scrub;
+mod openapi;
 mod rulesets;
 mod schema_parity;
 
@@ -18,7 +19,7 @@ commands:
   clippy-connectors       clippy on bank connector crates with disallowed_* lints forbidden
   rulesets check          compare .github/rulesets/main.json to the live ruleset
   rulesets apply          create/update the live ruleset from .github/rulesets/main.json
-  openapi                 not implemented yet (planned with the REST API)
+  openapi [--check]       write (or check) apps/web/src/api/openapi.json from the API
   schema-parity           check that the Postgres and SQLite migrations define the same schema
   connector-smoke <bank>  not implemented yet (planned with the direct connectors)";
 
@@ -29,7 +30,8 @@ fn main() -> ExitCode {
         ["check-deps"] => check_deps::run(),
         ["rulesets", "check"] => rulesets::check(),
         ["rulesets", "apply"] => rulesets::apply(),
-        ["openapi", ..] => not_implemented("openapi", "the REST API lands (OpenAPI drift check)"),
+        ["openapi"] => openapi::run(check_deps::workspace_root(), false),
+        ["openapi", "--check"] => openapi::run(check_deps::workspace_root(), true),
         ["schema-parity"] => schema_parity::run(check_deps::workspace_root()),
         ["fixtures-scrub-check"] => fixtures_scrub::run(check_deps::workspace_root()),
         ["clippy-connectors"] => connector_lint::run_clippy(check_deps::workspace_root()),
