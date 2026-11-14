@@ -8,11 +8,23 @@ repository.workspace = true
 publish = false
 
 [dependencies]
-solde-core-domain = { path = "../core-domain" }
-solde-storage = { path = "../storage" }
-solde-categorization = { path = "../categorization" }
+chrono.workspace = true
+# Random bytes for invitation, session and API tokens.
+getrandom.workspace = true
+# SHA-256 of tokens: only the hash is stored and looked up.
+sha2.workspace = true
 solde-analytics = { path = "../analytics" }
+solde-categorization = { path = "../categorization" }
+solde-core-domain = { path = "../core-domain" }
 solde-pricing = { path = "../pricing" }
+solde-storage = { path = "../storage" }
+# Wipes generated tokens from memory on drop.
+zeroize.workspace = true
+
+[dev-dependencies]
+sqlx.workspace = true
+tokio.workspace = true
+uuid.workspace = true
 
 [lints]
 workspace = true

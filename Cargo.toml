@@ -37,6 +37,8 @@ axum = "0.8"
 cargo_metadata = "0.23"
 chrono = { version = "0.4", default-features = false, features = ["std"] }
 chrono-tz = "0.10"
+# OS randomness for invitation, session and API tokens (already in the graph via uuid).
+getrandom = "0.4"
 http-body-util = "0.1"
 regex = "1"
 # TLS through rustls with the ring provider only (no OpenSSL, no aws-lc).
