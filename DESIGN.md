@@ -68,7 +68,7 @@ No logo yet: the name is set in Inter 600, `ink`.
 
 ## Components
 
-All monetary props (`amount`, `value`, `delta`, `spent`, `limit`, chart values) are integer minor units. Every component that shows money takes a required `currency` prop (ISO 4217 code, e.g. `'EUR'`) from the account it belongs to; the formatter needs it for both the symbol and the minor-unit scale.
+All monetary props (`amount`, `value`, `delta`, `spent`, `limit`, chart values) are integer minor units. Every component that shows money takes a required `currency` prop (ISO 4217 code, e.g. `'EUR'`) and a required `digits` prop (the API's `minor_digits`) from the account or transaction it belongs to; the formatter needs the currency for the symbol and the digits for the minor-unit scale.
 
 `Button`, `Amount`, `Badge`, `Icon`, `Card`, `SegmentedControl`, `AmountField`, `TransactionRow`, `BalanceCard`, `BudgetGauge`, `CategoryBar`, `Notice`, `TabBar`, and the **Home** reference screen. They are React components whose styles read only the token variables. They will live in `apps/web` once the UI work starts.
 
@@ -314,7 +314,7 @@ Displays an amount formatted for the active locale, with tabular figures and a r
 - `signed` shows `+` and colours values > 0 in `positive` (income, gains). An ordinary expense stays in `ink`.
 - `alertNegative` colours in `negative`: only for an overdraft, a penalty, overspending.
 - `hidden` → `••••` with the currency symbol in its locale position (discreet mode), with an `aria-label`.
-- **Money is integer minor units** everywhere, as in the backend: `value: 124035` with `currency: 'EUR'` is €1,240.35. The consumer passes that integer, never a float or a pre-formatted string. Conversion to major units happens only inside `formatAmount(value, { locale, signed, decimals, currency })`, which is also exported for text.
+- **Money is integer minor units** everywhere, as in the backend: `value: 124035` with `currency: 'EUR'` is €1,240.35. The consumer passes that integer, never a float or a pre-formatted string. Conversion to major units happens only inside `formatAmount(value, { locale, signed, decimals, currency, digits })`, which is also exported for text.
 
 ```ts
 interface AmountProps {
@@ -551,7 +551,7 @@ interface TabBarProps {
 
 `IconName` type: `plus`, `arrow-up-right`, `arrow-down-left`, `arrow-right-left`, `chevron-right`, `check`, `alert`, `info`, `eye`, `eye-off`, `home`, `chart`, `card`, `piggy`, `cart`, `building`, `briefcase`, `train`, `bolt`, `search`, `user`, `clock`.
 
-Utility: `formatAmount(value, { locale, signed?, decimals?, currency })` takes `value` in integer minor units, divides it by 10^digits, where digits is the currency's minor-unit count (`new Intl.NumberFormat(locale, { style: 'currency', currency }).resolvedOptions().maximumFractionDigits`: 2 for EUR, 0 for JPY), then formats with `Intl.NumberFormat(locale, { style: 'currency', currency })`. `decimals` only changes how many fraction digits are *displayed* (it sets both `minimumFractionDigits` and `maximumFractionDigits`, e.g. `decimals: 0` for "Over by €22"); the conversion from minor units always uses the currency's own scale. The formatter also replaces the `-` sign with `−` (U+2212) and uses `signDisplay: 'exceptZero'` when `signed`.
+Utility: `formatAmount(value, { locale, signed?, decimals?, currency, digits })` takes `value` in integer minor units, divides it by 10^digits, where `digits` is the currency's minor-unit count **as the server reports it** (`minor_digits` on accounts and transactions, from ISO 4217: 2 for EUR and HUF, 0 for JPY, 3 for IQD), then formats with `Intl.NumberFormat(locale, { style: 'currency', currency })`, passing `minimumFractionDigits` and `maximumFractionDigits` explicitly. Never take the digits from `Intl`: browsers follow CLDR, which disagrees with ISO 4217 for a few currencies (HUF, IQD, LBP, IRR, ALL), and amounts would be 100× off. A value that is not a safe integer renders as `—` instead of throwing; the server never sends one (amounts are limited to ±(2^53 − 1)). `decimals` only changes how many fraction digits are *displayed* (it sets both `minimumFractionDigits` and `maximumFractionDigits`, e.g. `decimals: 0` for "Over by €22"); the conversion from minor units always uses the currency's own scale. The formatter also replaces the `-` sign with `−` (U+2212) and uses `signDisplay: 'exceptZero'` when `signed`.
 
 
 ---

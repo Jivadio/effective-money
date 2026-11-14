@@ -150,6 +150,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --dir apps/web api:check
       - run: pnpm --dir apps/web lint
       - run: pnpm --dir apps/web test
       - run: pnpm --dir apps/web build

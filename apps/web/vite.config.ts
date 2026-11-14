@@ -19,6 +19,8 @@ export default defineConfig(({ mode }) => {
       environment: 'jsdom',
       globals: true,
       setupFiles: ['./src/test-setup.ts'],
+      // Let tests read tokens.css (`?raw`) to check it against DESIGN.md.
+      css: { include: [/tokens\.css/] },
     },
   };
 });

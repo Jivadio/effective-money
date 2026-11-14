@@ -1,0 +1,269 @@
+{
+  "_meta": {
+    "language": "fr",
+    "status": "untranslated"
+  },
+  "common": {
+    "appName": "Solde",
+    "documentTitle": "{screen} · Solde",
+    "loading": "Loading…",
+    "loadFailed": "This didn’t load",
+    "retry": "Try again",
+    "cancel": "Cancel",
+    "copy": "Copy",
+    "copied": "Copied.",
+    "copyFailed": "Couldn’t copy. Select the text and copy it.",
+    "done": "Done"
+  },
+  "nav": {
+    "label": "Main",
+    "home": "Solde, accounts",
+    "skipToContent": "Skip to content",
+    "accounts": "Accounts",
+    "invitations": "Invitations",
+    "tokens": "API tokens",
+    "signOut": "Sign out"
+  },
+  "forms": {
+    "yourName": "Your name",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "At least {min} characters.",
+    "optional": "(optional)",
+    "errors": {
+      "nameRequired": "Enter a name.",
+      "emailInvalid": "Enter an email address, like jane@example.com.",
+      "passwordShort": "Use at least {min} characters."
+    }
+  },
+  "setup": {
+    "title": "Set up Solde",
+    "intro": "Create your household and your admin account. You can invite the others afterwards.",
+    "code": "Setup code",
+    "codeHint": "Your Solde server printed it in its log when it started, after “setup code:”. With Docker Compose, run: docker compose logs server",
+    "householdName": "Household name",
+    "householdHint": "For example, “Doe family”.",
+    "submit": "Create the household",
+    "failed": "Setup didn’t finish",
+    "goToLogin": "Go to sign in",
+    "errors": {
+      "householdRequired": "Enter a household name.",
+      "codeRequired": "Enter the setup code from the server log."
+    }
+  },
+  "login": {
+    "title": "Sign in",
+    "intro": "Sign in to see your household’s accounts.",
+    "submit": "Sign in",
+    "failed": "You’re not signed in",
+    "invitedHint": "Invited to a household? Open the link you received to join.",
+    "errors": {
+      "passwordRequired": "Enter your password."
+    }
+  },
+  "join": {
+    "title": "Join the household",
+    "intro": "Create your account to join. You’ll only see the accounts shared with you.",
+    "token": "Invitation code",
+    "tokenHint": "It’s at the end of the link you received, after “token=”.",
+    "submit": "Join the household",
+    "failed": "You couldn’t join",
+    "haveAccount": "Already have an account? Sign in.",
+    "errors": {
+      "tokenRequired": "Enter the invitation code.",
+      "not_found": "This invitation is invalid, expired or already used. Ask for a new one."
+    }
+  },
+  "accounts": {
+    "title": "Accounts",
+    "subtitle": "Accounts you own or that are shared with you.",
+    "add": "Add an account",
+    "listTitle": "{count, plural, one {# account} other {# accounts}}",
+    "noBalance": "No balance",
+    "emptyTitle": "No accounts yet",
+    "emptyBody": "Add an account, then record its transactions by hand."
+  },
+  "accountKinds": {
+    "checking": "Current account",
+    "savings": "Savings",
+    "investment": "Investment",
+    "life_insurance": "Life insurance",
+    "loan": "Loan",
+    "card": "Card"
+  },
+  "permissions": {
+    "read": "Can view",
+    "write": "Can edit",
+    "owner": "Owner",
+    "readHint": "Sees the account and its transactions.",
+    "writeHint": "Can also add transactions.",
+    "ownerHint": "Can also share the account."
+  },
+  "roles": {
+    "admin": "Admin",
+    "member": "Member",
+    "adminHint": "Admins can also invite people. They don’t see others’ private accounts.",
+    "memberHint": "Members see their own accounts and the ones shared with them.",
+    "adminInvitation": "Admin invitation",
+    "memberInvitation": "Member invitation"
+  },
+  "newAccount": {
+    "title": "Add an account",
+    "subtitle": "A manual account: you enter its transactions yourself, and you’re its owner.",
+    "name": "Account name",
+    "nameHint": "For example, “Joint current account”.",
+    "kind": "Type",
+    "currency": "Currency",
+    "currencyHint": "All amounts on this account use it.",
+    "iban": "IBAN",
+    "ibanHint": "Helps you recognise the account. Solde never moves money.",
+    "submit": "Add the account",
+    "failed": "The account wasn’t added",
+    "errors": {
+      "nameRequired": "Enter a name for the account."
+    }
+  },
+  "account": {
+    "balance": "Opening balance",
+    "noBalance": "No balance recorded",
+    "details": "Manual account in {currency}",
+    "detailsWithIban": "Manual account in {currency} · {iban}",
+    "manageSharing": "Manage sharing",
+    "readOnlyTitle": "View only",
+    "readOnlyBody": "You can see this account. Ask an owner for edit access to add transactions.",
+    "notFoundTitle": "Account not found",
+    "notFoundBody": "This account doesn’t exist or isn’t shared with you."
+  },
+  "transactions": {
+    "title": "Transactions",
+    "empty": "No transactions yet.",
+    "pendingOn": "Pending · {date}",
+    "showingLatest": "{count, plural, one {Showing the latest transaction.} other {Showing the latest # transactions.}}",
+    "loadMore": "Load more",
+    "addTitle": "Add a transaction",
+    "direction": "Direction",
+    "moneyOut": "Money out",
+    "moneyIn": "Money in",
+    "amount": "Amount",
+    "label": "Label",
+    "labelHint": "What it was, as you want to see it: “Groceries”, “Rent”.",
+    "date": "Date",
+    "submit": "Add the transaction",
+    "added": "Transaction added.",
+    "addFailed": "The transaction wasn’t added",
+    "errors": {
+      "amountRequired": "Enter an amount.",
+      "amountInvalid": "Enter digits only, with a decimal point or comma if needed.",
+      "amountDecimals": "{digits, plural, =0 {This currency has no decimals.} one {Use at most # decimal.} other {Use at most # decimals.}}",
+      "amountTooLarge": "This amount is too large.",
+      "amountZero": "Enter an amount greater than zero.",
+      "labelRequired": "Enter a label.",
+      "dateRequired": "Choose a date."
+    }
+  },
+  "sharing": {
+    "title": "Sharing",
+    "subtitle": "Who can see and change {account}.",
+    "listTitle": "People with access",
+    "you": "{name} (you)",
+    "unknownMember": "Former member",
+    "permissionFor": "Access for {name}",
+    "revoke": "Remove",
+    "revokeConfirm": "Remove access",
+    "confirmRevoke": "Remove {name}’s access? They won’t see this account any more.",
+    "confirmRevokeSelf": "Remove your own access? You won’t see this account any more.",
+    "grantTitle": "Give access",
+    "member": "Member",
+    "permission": "Access",
+    "grant": "Give access",
+    "everyoneHasAccess": "Everyone in the household already has access.",
+    "failed": "Access wasn’t changed",
+    "ownersOnlyTitle": "Only owners manage sharing",
+    "ownersOnlyBody": "Ask an owner of this account to change who can see it."
+  },
+  "invitations": {
+    "title": "Invitations",
+    "subtitle": "Invite people to your household. Each link works once.",
+    "createTitle": "Invite someone",
+    "role": "Role",
+    "create": "Create an invitation link",
+    "createFailed": "The invitation wasn’t created",
+    "createdTitle": "Invitation link ready",
+    "createdBody": "Send this link to the person you invite. It works once and expires on {date}. Solde won’t show it again.",
+    "link": "Invitation link",
+    "listTitle": "Sent invitations",
+    "empty": "No invitations yet.",
+    "accepted": "Accepted",
+    "expired": "Expired",
+    "pending": "Waiting",
+    "acceptedOn": "Accepted on {date}",
+    "expiresOn": "Expires on {date}"
+  },
+  "tokens": {
+    "title": "API tokens",
+    "subtitle": "A token lets a script or another app use Solde on your behalf.",
+    "createTitle": "Create a token",
+    "name": "Token name",
+    "nameHint": "So you recognise it later, like “Laptop”.",
+    "expiry": "Expires",
+    "expiryDays": "{days, plural, one {In # day} other {In # days}}",
+    "expiryNever": "Never",
+    "create": "Create the token",
+    "createFailed": "The token wasn’t created",
+    "createdTitle": "Copy your new token now",
+    "createdBody": "Scripts send it in the {header} header. Solde won’t show it again.",
+    "secret": "API token",
+    "listTitle": "Your tokens",
+    "empty": "No API tokens yet.",
+    "createdOn": "Created {date}",
+    "expiresOn": "Expires {date}",
+    "neverExpires": "Never expires",
+    "lastUsed": "Last used {date}",
+    "neverUsed": "Never used",
+    "delete": "Delete",
+    "deleteConfirm": "Delete the token",
+    "confirmDelete": "Delete “{name}”? Scripts using it stop working.",
+    "deleteFailed": "The token wasn’t deleted",
+    "errors": {
+      "nameRequired": "Enter a name for the token."
+    }
+  },
+  "system": {
+    "errorTitle": "Solde can’t reach the server",
+    "errorIntro": "Check that the Solde server is running, then try again.",
+    "notFoundTitle": "Page not found",
+    "notFoundIntro": "This page doesn’t exist.",
+    "backHome": "Go to accounts"
+  },
+  "errors": {
+    "already_bootstrapped": "This Solde is already set up. Sign in instead.",
+    "amount_out_of_range": "This amount is too large.",
+    "currency_mismatch": "The amount’s currency must match the account’s.",
+    "date_out_of_range": "Choose a date between the years 0000 and 9999.",
+    "duplicate_iban": "You already have an account with this IBAN.",
+    "email_taken": "A member already uses this email.",
+    "empty_label": "Enter a label.",
+    "empty_name": "Enter a name.",
+    "forbidden": "You don’t have permission to do this.",
+    "internal": "Something went wrong on the server. Try again in a moment.",
+    "invalid_request": "Solde couldn’t understand this request. Reload the page and try again.",
+    "invalid_credentials": "Wrong email or password.",
+    "invalid_setup_code": "This setup code is wrong. Copy the latest one from the server log. Each restart prints a new one.",
+    "invalid_currency": "Choose a valid currency.",
+    "invalid_date": "Enter a valid date.",
+    "invalid_email": "Enter a valid email address.",
+    "invalid_expiry": "Choose an expiry between 1 and 3650 days.",
+    "invalid_iban": "This IBAN isn’t valid. Check it for typos.",
+    "label_too_long": "This label is too long. Shorten it.",
+    "last_owner": "An account needs at least one owner. Make someone else an owner first.",
+    "name_too_long": "This name is too long. Shorten it.",
+    "network": "Solde can’t reach the server. Check your connection and try again.",
+    "not_found": "This doesn’t exist or isn’t shared with you.",
+    "password_too_long": "This password is too long.",
+    "password_too_short": "Use a password of at least 12 characters.",
+    "rate_limited": "Too many attempts. Wait a minute, then try again.",
+    "session_required": "Sign in with your password to do this.",
+    "unauthorized": "Your session has ended. Sign in again.",
+    "unknown": "Something went wrong. Try again."
+  }
+}
