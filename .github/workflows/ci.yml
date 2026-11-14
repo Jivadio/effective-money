@@ -132,6 +132,8 @@ jobs:
       - run: cargo xtask fixtures-scrub-check
       # Postgres and SQLite migrations define the same tables, columns and indexes.
       - run: cargo xtask schema-parity
+      # The committed OpenAPI document matches the API handlers.
+      - run: cargo xtask openapi --check
 
   web:
     name: web
@@ -171,9 +173,19 @@ jobs:
           cache-to: type=gha,mode=max
       - name: Smoke test /healthz
         run: |
-          docker run -d --name solde -p 8080:8080 solde:ci
+          # The server refuses to start without a master key and a database.
+          mkdir -p "$RUNNER_TEMP/keys"
+          head -c 32 /dev/urandom | base64 > "$RUNNER_TEMP/keys/master.key"
+          chmod 0444 "$RUNNER_TEMP/keys/master.key"
+          docker run -d --name solde -p 8080:8080 \
+            -v "$RUNNER_TEMP/keys:/run/solde-keys:ro" \
+            -e SOLDE_MASTER_KEY_FILE=/run/solde-keys/master.key \
+            -e SOLDE_DATABASE_URL=sqlite:///data/solde.db \
+            solde:ci
           for _ in $(seq 1 20); do
-            if curl -fsS http://127.0.0.1:8080/healthz; then docker rm -f solde; exit 0; fi
+            if curl -fsS http://127.0.0.1:8080/healthz && curl -fsS http://127.0.0.1:8080/api/v1/meta; then
+              docker rm -f solde; exit 0
+            fi
             sleep 1
           done
           docker logs solde

@@ -20,18 +20,22 @@ git clone https://github.com/Jivadio/solde.git
 cd solde
 pnpm install              # web dependencies
 cargo test                # Rust tests
-cargo run -p solde-server    # serves on http://localhost:8080, try /healthz
+head -c 32 /dev/urandom | base64 > master.key    # a throwaway local master key
+SOLDE_MASTER_KEY_FILE=master.key SOLDE_DATABASE_URL=sqlite://solde.db SOLDE_INSECURE_COOKIES=1 \
+  cargo run -p solde-server  # serves on http://localhost:8080, try /healthz and /api/v1/meta
 pnpm web:dev              # web UI dev server
 ```
 
-The storage and services tests run on SQLite out of the box. To run them on PostgreSQL too, point `SOLDE_TEST_DATABASE_URL` at a scratch database (each test uses its own schema and cleans up). Without it the PostgreSQL tests skip, except when the `CI` variable is set: there they fail, so CI never passes without PostgreSQL.
+The storage, services and API tests run on SQLite out of the box. To run them on PostgreSQL too, point `SOLDE_TEST_DATABASE_URL` at a scratch database (each test uses its own schema and cleans up). Without it the PostgreSQL tests skip, except when the `CI` variable is set: there they fail, so CI never passes without PostgreSQL.
 
 ```sh
 docker run -d --rm --name solde-pg-test -e POSTGRES_PASSWORD=test -e POSTGRES_DB=solde_test -p 55432:5432 postgres:16-alpine
-SOLDE_TEST_DATABASE_URL=postgres://postgres:test@127.0.0.1:55432/solde_test cargo test -p solde-storage -p solde-services
+SOLDE_TEST_DATABASE_URL=postgres://postgres:test@127.0.0.1:55432/solde_test cargo test -p solde-storage -p solde-services -p solde-api
 ```
 
 Changing the database schema? Add a migration with the same file name in both `crates/storage/migrations/postgres/` and `crates/storage/migrations/sqlite/`; `cargo xtask schema-parity` tells you if they drift apart.
+
+Changing the REST API? Run `cargo xtask openapi` to refresh `apps/web/src/api/openapi.json` and commit it; CI checks it with `cargo xtask openapi --check`.
 
 The Rust version is pinned in `rust-toolchain.toml`, and pnpm in `package.json`. Prefer containers? `docker compose up` runs the server with PostgreSQL (`docker compose -f compose.sqlite.yaml up` for SQLite).
 

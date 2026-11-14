@@ -18,10 +18,12 @@ serde.workspace = true
 tokio.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
-# Wiring only: the server binary links the API, MCP and sync layers
-# (see AGENTS.md, Architecture rules).
+# Wiring only: the server binary links the API, MCP and sync layers, and
+# opens the store through services (see AGENTS.md, Architecture rules). The
+# master key comes from secrets through sync, never directly.
 solde-api = { path = "../../crates/api" }
 solde-mcp = { path = "../../crates/mcp" }
+solde-services = { path = "../../crates/services" }
 solde-sync = { path = "../../crates/sync" }
 
 [dev-dependencies]

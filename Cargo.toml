@@ -32,14 +32,20 @@ repository = "https://github.com/Jivadio/solde"
 
 [workspace.dependencies]
 anyhow = "1"
+# Password hashing (Argon2id) for the API; the salt comes from getrandom.
+argon2 = { version = "0.6", default-features = false, features = ["alloc", "password-hash"] }
 async-trait = "0.1"
 axum = "0.8"
+# Master-key text form (the keygen container writes `base64` output).
+base64 = "0.23"
 cargo_metadata = "0.23"
 chrono = { version = "0.4", default-features = false, features = ["std"] }
 chrono-tz = "0.10"
 # OS randomness for invitation, session and API tokens (already in the graph via uuid).
 getrandom = "0.4"
 http-body-util = "0.1"
+# CIDR parsing for SOLDE_TRUSTED_PROXIES (already in the graph via reqwest).
+ipnet = "2"
 regex = "1"
 # TLS through rustls with the ring provider only (no OpenSSL, no aws-lc).
 reqwest = { version = "0.13", default-features = false, features = ["rustls-no-provider"] }
@@ -55,6 +61,8 @@ toml = "1"
 tower = { version = "0.5", features = ["util"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
+# OpenAPI description of the REST API, generated from the handlers.
+utoipa = "6"
 uuid = { version = "1", default-features = false, features = ["std", "v7"] }
 webpki-roots = "1"
 zeroize = "1"
@@ -69,6 +77,14 @@ unwrap_used = "deny"
 # abort the whole process.
 [profile.dev]
 panic = "unwind"
+
+# Argon2 is slow by design; unoptimized, every test login would take
+# seconds. Optimize just the hashing crates in dev and test builds.
+[profile.dev.package.argon2]
+opt-level = 3
+
+[profile.dev.package.blake2]
+opt-level = 3
 
 [profile.release]
 panic = "unwind"
