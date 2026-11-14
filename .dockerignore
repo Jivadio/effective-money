@@ -1,12 +1,13 @@
 target/
 **/target/
 **/node_modules/
+apps/web/dist/
 .git/
 .omc/
 .idea/
 .vscode/
-apps/web/
 docs/
+services/
 .env
 .env.*
 *.key

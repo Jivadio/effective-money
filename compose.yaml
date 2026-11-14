@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Solde: server + PostgreSQL. Usage: `docker compose up`.
-# Skeleton for now: the server only serves /healthz; the database is not used yet.
+# Then open http://localhost:8080. The server serves the web app, the REST API
+# (/api/v1) and /healthz. Guide: docs/self-hosting.md.
 
 name: solde
 
@@ -11,7 +12,9 @@ services:
   #
   # To use your own key instead, put it in a directory as `master.key` (readable
   # by uid 65532, e.g. mode 0444) and set SOLDE_KEYS_SOURCE=/path/to/that/dir.
-  # Back the generated key up separately: without it the data cannot be decrypted.
+  # Back the generated key up separately from the data (`docker compose run
+  # --rm server admin export-key` prints it): without it, saved bank
+  # credentials cannot be decrypted.
   keygen:
     image: alpine:3.22
     restart: "no"
@@ -52,15 +55,24 @@ services:
         condition: service_healthy
     environment:
       SOLDE_LISTEN_ADDR: 0.0.0.0:8080
-      # The server refuses to start if this file cannot be opened. The key
-      # itself is not used yet.
+      # The server refuses to start without a readable key (32 bytes, base64).
       SOLDE_MASTER_KEY_FILE: /run/solde-keys/master.key
       SOLDE_DATABASE_URL: postgres://solde:${SOLDE_POSTGRES_PASSWORD:-change-me}@postgres:5432/solde
+      # Session cookies are `Secure` (HTTPS only; most browsers also accept them on
+      # http://localhost). On a plain-HTTP LAN set SOLDE_INSECURE_COOKIES=1:
+      # the server then warns at startup. Never do this on the internet.
+      SOLDE_INSECURE_COOKIES: ${SOLDE_INSECURE_COOKIES:-0}
+      # Behind a reverse proxy, its address or CIDR range (comma-separated), so
+      # the login rate limit sees real client IPs from X-Forwarded-For.
+      SOLDE_TRUSTED_PROXIES: ${SOLDE_TRUSTED_PROXIES:-}
       RUST_LOG: ${RUST_LOG:-info}
     volumes:
       - ${SOLDE_KEYS_SOURCE:-solde-keys}:/run/solde-keys:ro
+    # Reachable from this machine only. To open it to your network, set
+    # SOLDE_BIND_ADDRESS=0.0.0.0 (and read docs/self-hosting.md about TLS
+    # and SOLDE_INSECURE_COOKIES first).
     ports:
-      - "${SOLDE_PORT:-8080}:8080"
+      - "${SOLDE_BIND_ADDRESS:-127.0.0.1}:${SOLDE_PORT:-8080}:8080"
     # No container healthcheck yet: the distroless image has no shell or curl.
 
   postgres:
